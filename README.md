@@ -1,5 +1,7 @@
 # CastleForge Community Mods
 
+![CastleForge Preview](Assets/Branding/Preview.png)
+
 This repository is the **community catalog / hub** for third-party CastleForge mods.
 
 It is intentionally separate from the main CastleForge repository so the core platform and official mods can stay stable, focused, and easy to maintain.
@@ -37,14 +39,14 @@ CastleForge-CommunityMods/
 │  README.md
 │  CONTRIBUTING.md
 │
-├─ mods/
+├─ Mods/
 │  ├─ _template/
 │  └─ ExampleCommunityMod/
 │     ├─ mod.json
 │     ├─ README.md
 │     └─ preview.png
 │
-└─ index/
+└─ Index/
    └─ mods.json
 ```
 
@@ -59,13 +61,47 @@ A community mod can later be promoted into the main CastleForge repository if it
 
 ## Main CastleForge repo relationship
 
-The main CastleForge repository should link here as:
+The main **[CastleForge](https://github.com/RussDev7/CastleForge)** repository is the home of the official CastleForge ecosystem, including:
 
-- **Community Mods**
-- **Third-Party Mods**
-- **Mod Catalog**
+- the core **ModLoader**
+- **ModLoaderExtensions**
+- official first-party mods
+- official tools
+- official servers
+- platform documentation and installation guidance
 
-and clearly explain the difference between:
+This **CastleForge-CommunityMods** repository exists alongside it as the dedicated home for **community-created mod listings and discovery**.
 
-- **official first-party mods**
-- **community catalog mods**
+### In simple terms
+
+- **CastleForge** = official platform + officially maintained mods
+- **CastleForge-CommunityMods** = third-party community mod catalog
+
+### Why they are separated
+
+Keeping the repositories separate helps:
+
+- keep the main CastleForge repo clean and focused
+- make official support boundaries clearer
+- avoid mixing unrelated third-party source projects into the core platform
+- make community submissions easier to review and organize
+- allow community mods to grow without bloating the main CastleForge solution
+
+### Support expectations
+
+In general:
+
+- mods in the main **CastleForge** repository are part of the official CastleForge ecosystem
+- mods listed in **CastleForge-CommunityMods** may be community-maintained and may have different update schedules, support levels, or compatibility guarantees
+
+Each catalog entry should make ownership, source links, release links, and compatibility notes as clear as possible.
+
+### Possible promotion to official status
+
+A community mod listed here may later be promoted into the main **CastleForge** repository if it becomes:
+
+- actively maintained
+- widely used
+- well documented
+- compatible with current CastleForge standards
+- something the CastleForge maintainers choose to officially support
