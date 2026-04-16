@@ -120,14 +120,16 @@ jobs:
                   return len(CATEGORY_ORDER)
 
           def get_manifest(entry: dict):
-              category = str(entry.get('category', 'mod')).strip()
-              entry_name = str(entry.get('name', '')).strip()
-              root_dir = roots.get(category)
-              if not root_dir or not entry_name:
+              readme_path = str(entry.get('readme_path', '')).replace('\\', '/').strip()
+              if not readme_path:
                   return {}
-              manifest_path = root_dir / entry_name / 'mod.json'
+
+              readme_file = ROOT / readme_path
+              manifest_path = readme_file.parent / 'mod.json'
+
               if not manifest_path.is_file():
                   return {}
+
               try:
                   return json.loads(manifest_path.read_text(encoding='utf-8'))
               except Exception:
