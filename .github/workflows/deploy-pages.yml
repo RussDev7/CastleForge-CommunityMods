@@ -5,7 +5,10 @@ on:
     branches: [ main, master ]
     paths:
       - 'Mods/**'
+      - 'mods/**'
       - 'Index/**'
+      - 'index/**'
+      - 'assets/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/deploy-pages.yml'
@@ -29,7 +32,6 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Pages
-        id: pages
         uses: actions/configure-pages@v5
 
       - name: Build static catalog
@@ -40,15 +42,36 @@ jobs:
           import json
           import shutil
           from pathlib import Path
+          import os
 
           ROOT = Path('.')
           SITE = ROOT / '_site'
-          MODS = ROOT / 'mods'
-          INDEX = ROOT / 'index' / 'mods.json'
           PLACEHOLDER_NAMES = {'ExampleCommunityMod'}
           PLACEHOLDER_SLUGS = {'example-community-mod'}
-          REPO = f"{__import__('os').environ['GITHUB_SERVER_URL']}/{__import__('os').environ['GITHUB_REPOSITORY']}"
-          REF = __import__('os').environ.get('GITHUB_REF_NAME', 'main')
+
+          REPO = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
+          REF = os.environ.get('GITHUB_REF_NAME', 'main')
+
+          def choose_existing_dir(preferred: str, alternate: str) -> Path:
+              preferred_path = ROOT / preferred
+              alternate_path = ROOT / alternate
+
+              if preferred_path.exists() and alternate_path.exists():
+                  raise SystemExit(f"Both '{preferred}/' and '{alternate}/' exist. Keep only one casing.")
+
+              if preferred_path.exists():
+                  return preferred_path
+              if alternate_path.exists():
+                  return alternate_path
+              return preferred_path
+
+          MODS = choose_existing_dir('Mods', 'mods')
+          INDEX_DIR = choose_existing_dir('Index', 'index')
+          INDEX = INDEX_DIR / 'mods.json'
+          ASSETS = ROOT / 'assets'
+
+          mods_label = MODS.name
+          index_label = INDEX_DIR.name
 
           if SITE.exists():
               shutil.rmtree(SITE)
@@ -62,6 +85,7 @@ jobs:
           for entry in entries:
               if not isinstance(entry, dict):
                   continue
+
               name = str(entry.get('name', '')).strip()
               slug = str(entry.get('slug', '')).strip()
               if name in PLACEHOLDER_NAMES or slug in PLACEHOLDER_SLUGS:
@@ -74,41 +98,37 @@ jobs:
               author = html.escape(str(entry.get('author', 'Unknown')).strip())
 
               blob_readme_url = f"{REPO}/blob/{REF}/{readme_path}" if readme_path else REPO
+
               source_repo = ''
               releases_url = ''
-              mod_json_path = ROOT / 'mods' / name / 'mod.json'
+              tags_html = ''
+
+              mod_json_path = MODS / name / 'mod.json'
               if mod_json_path.is_file():
                   try:
                       mod_data = json.loads(mod_json_path.read_text(encoding='utf-8'))
                       source_repo = str(mod_data.get('source_repo', '')).strip()
                       releases_url = str(mod_data.get('releases_url', '')).strip()
-                  except Exception:
-                      pass
-
-              tags_html = ''
-              if mod_json_path.is_file():
-                  try:
-                      mod_data = json.loads(mod_json_path.read_text(encoding='utf-8'))
                       tags = mod_data.get('tags', []) if isinstance(mod_data.get('tags', []), list) else []
                       tags_html = ''.join(f'<span class="tag">{html.escape(str(t))}</span>' for t in tags)
                   except Exception:
-                      tags_html = ''
+                      pass
 
               cards.append(f"""
-              <article class=\"card\">
-                <div class=\"media\">
-                  <img src=\"{html.escape(preview_path)}\" alt=\"{html.escape(name)} preview\" loading=\"lazy\">
+              <article class="card">
+                <div class="media">
+                  <img src="{html.escape(preview_path)}" alt="{html.escape(name)} preview" loading="lazy">
                 </div>
-                <div class=\"content\">
-                  <div class=\"heading\">
+                <div class="content">
+                  <div class="heading">
                     <h2>{html.escape(name)}</h2>
-                    <span class=\"badge {'official' if official else 'community'}\">{'Official' if official else 'Community'}</span>
+                    <span class="badge {'official' if official else 'community'}">{'Official' if official else 'Community'}</span>
                   </div>
-                  <p class=\"author\">By {author}</p>
+                  <p class="author">By {author}</p>
                   <p>{html.escape(summary)}</p>
-                  <div class=\"tags\">{tags_html}</div>
-                  <div class=\"links\">
-                    <a href=\"{html.escape(blob_readme_url)}\">README</a>
+                  <div class="tags">{tags_html}</div>
+                  <div class="links">
+                    <a href="{html.escape(blob_readme_url)}">README</a>
                     {f'<a href="{html.escape(source_repo)}">Source</a>' if source_repo else ''}
                     {f'<a href="{html.escape(releases_url)}">Releases</a>' if releases_url else ''}
                   </div>
@@ -118,16 +138,20 @@ jobs:
 
           if MODS.exists():
               shutil.copytree(MODS, SITE / 'mods', dirs_exist_ok=True)
-          if (ROOT / 'index').exists():
-              shutil.copytree(ROOT / 'index', SITE / 'index', dirs_exist_ok=True)
+
+          if INDEX_DIR.exists():
+              shutil.copytree(INDEX_DIR, SITE / 'index', dirs_exist_ok=True)
+
+          if ASSETS.exists():
+              shutil.copytree(ASSETS, SITE / 'assets', dirs_exist_ok=True)
 
           body = '\n'.join(cards) if cards else '<p class="empty">No community mods have been published yet. Submit the first one!</p>'
 
           html_text = f"""<!doctype html>
-          <html lang=\"en\">
+          <html lang="en">
           <head>
-            <meta charset=\"utf-8\">
-            <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
             <title>CastleForge Community Mods</title>
             <style>
               :root {{ color-scheme: dark; --bg:#0b1020; --panel:#141b2d; --text:#e8ecf3; --muted:#9aa7bd; --accent:#6ea8fe; --line:#23304a; }}
@@ -135,6 +159,7 @@ jobs:
               body {{ margin:0; font-family:Segoe UI, Arial, sans-serif; background:linear-gradient(180deg,#0b1020,#11182a); color:var(--text); }}
               .wrap {{ max-width:1200px; margin:0 auto; padding:40px 20px 64px; }}
               header {{ margin-bottom:28px; }}
+              .brand {{ max-width:420px; margin:0 0 18px; display:block; }}
               h1 {{ margin:0 0 10px; font-size:clamp(2rem,4vw,3rem); }}
               p.lead {{ color:var(--muted); max-width:850px; line-height:1.6; }}
               .toplinks {{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }}
@@ -159,18 +184,19 @@ jobs:
             </style>
           </head>
           <body>
-            <div class=\"wrap\">
+            <div class="wrap">
               <header>
+                <img class="brand" src="assets/branding/Preview.png" alt="CastleForge Community Mods">
                 <h1>CastleForge Community Mods</h1>
-                <p class=\"lead\">Third-party CastleForge mods curated through the community catalog. Each entry links back to its README, source repository, and releases when available.</p>
-                <div class=\"toplinks\">
-                  <a href=\"{REPO}\">Repository</a>
-                  <a href=\"{REPO}/blob/{REF}/CONTRIBUTING.md\">Contributing</a>
-                  <a href=\"{REPO}/blob/{REF}/index/mods.json\">Raw index</a>
+                <p class="lead">Third-party CastleForge mods curated through the community catalog. Each entry links back to its README, source repository, and releases when available.</p>
+                <div class="toplinks">
+                  <a href="{REPO}">Repository</a>
+                  <a href="{REPO}/blob/{REF}/CONTRIBUTING.md">Contributing</a>
+                  <a href="{REPO}/blob/{REF}/{index_label}/mods.json">Raw index</a>
                 </div>
               </header>
-              <main class=\"grid\">{body}</main>
-              <footer>Generated automatically from <code>index/mods.json</code> and each mod's <code>mod.json</code>.</footer>
+              <main class="grid">{body}</main>
+              <footer>Generated automatically from <code>{index_label}/mods.json</code> and each mod's <code>mod.json</code>.</footer>
             </div>
           </body>
           </html>
