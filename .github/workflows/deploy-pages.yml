@@ -118,7 +118,26 @@ jobs:
               preview_path = str(entry.get('preview_path', '')).replace('\\', '/').strip()
               readme_path = str(entry.get('readme_path', '')).replace('\\', '/').strip()
               official = bool(entry.get('official', False))
-              author = html.escape(str(entry.get('author', 'Unknown')).strip())
+              author = str(entry.get('author', 'Unknown')).strip()
+
+              source_repo = ''
+              releases_url = ''
+              tags_html = ''
+
+              mod_json_path = MODS / name / 'mod.json'
+              if mod_json_path.is_file():
+                  try:
+                      mod_data = json.loads(mod_json_path.read_text(encoding='utf-8'))
+                      author = str(mod_data.get('author', author)).strip()
+                      summary = str(mod_data.get('summary', summary)).strip()
+                      source_repo = str(mod_data.get('source_repo', '')).strip()
+                      releases_url = str(mod_data.get('releases_url', '')).strip()
+                      tags = mod_data.get('tags', []) if isinstance(mod_data.get('tags', []), list) else []
+                      tags_html = ''.join(f'<span class="tag">{html.escape(str(t))}</span>' for t in tags)
+                  except Exception:
+                      pass
+
+              author = html.escape(author)
 
               blob_readme_url = f"{REPO}/blob/{REF}/{readme_path}" if readme_path else REPO
 
@@ -181,8 +200,9 @@ jobs:
               .toplinks a, .links a {{ text-decoration:none; color:var(--text); background:var(--panel); border:1px solid var(--line); padding:10px 14px; border-radius:12px; display:inline-block; }}
               .grid {{ display:grid; gap:18px; }}
               .card {{ display:grid; grid-template-columns:minmax(240px,320px) 1fr; gap:18px; background:rgba(20,27,45,.88); border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.2); }}
-              .media {{ background:#0d1425; aspect-ratio: 16 / 9; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:12px; }}
-              .media img {{ width:100%; height:100%; object-fit:contain; object-position:center; display:block; }}
+              .card { display:grid; grid-template-columns:minmax(240px,320px) 1fr; gap:18px; align-items:stretch; background:rgba(20,27,45,.88); border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.2); }
+              .media { background:#0d1425; min-height:180px; height:100%; align-self:stretch; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:12px; }
+              .media img { width:100%; height:100%; object-fit:contain; object-position:center; display:block; }
               .content {{ padding:20px; }}
               .heading {{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }}
               .heading h2 {{ margin:0; font-size:1.5rem; }}
