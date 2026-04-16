@@ -181,8 +181,8 @@ jobs:
               .toplinks a, .links a {{ text-decoration:none; color:var(--text); background:var(--panel); border:1px solid var(--line); padding:10px 14px; border-radius:12px; display:inline-block; }}
               .grid {{ display:grid; gap:18px; }}
               .card {{ display:grid; grid-template-columns:minmax(240px,320px) 1fr; gap:18px; background:rgba(20,27,45,.88); border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.2); }}
-              .media {{ background:#0d1425; min-height:180px; height:100%; overflow:hidden; display:flex; align-items:stretch; justify-content:center; }}
-              .media img {{ width:100%; height:100%; object-fit:cover; object-position:center; display:block; }}
+              .media {{ background:#0d1425; aspect-ratio: 16 / 9; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:12px; }}
+              .media img {{ width:100%; height:100%; object-fit:contain; object-position:center; display:block; }}
               .content {{ padding:20px; }}
               .heading {{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }}
               .heading h2 {{ margin:0; font-size:1.5rem; }}
