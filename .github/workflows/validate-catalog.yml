@@ -5,14 +5,18 @@ on:
     branches: [ main, master ]
     paths:
       - 'Mods/**'
+      - 'mods/**'
       - 'Index/**'
+      - 'index/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/validate-catalog.yml'
   pull_request:
     paths:
       - 'Mods/**'
+      - 'mods/**'
       - 'Index/**'
+      - 'index/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/validate-catalog.yml'
@@ -38,8 +42,6 @@ jobs:
           from pathlib import Path
 
           ROOT = Path('.')
-          MODS_ROOT = ROOT / 'mods'
-          INDEX_PATH = ROOT / 'index' / 'mods.json'
           PLACEHOLDER_NAMES = {'ExampleCommunityMod'}
           PLACEHOLDER_SLUGS = {'example-community-mod'}
           PREVIEW_EXTS = {'.png', '.gif', '.jpg', '.jpeg', '.webp'}
@@ -58,13 +60,30 @@ jobs:
               warnings.append(message)
               print(f"::warning::{message}")
 
-          def load_json(path: Path):
+          def choose_existing_dir(preferred: str, alternate: str):
+              preferred_path = ROOT / preferred
+              alternate_path = ROOT / alternate
+
+              preferred_exists = preferred_path.exists()
+              alternate_exists = alternate_path.exists()
+
+              if preferred_exists and alternate_exists:
+                  add_error(f"Both '{preferred}/' and '{alternate}/' exist. Keep only one casing.")
+                  return preferred_path
+
+              if preferred_exists:
+                  return preferred_path
+              if alternate_exists:
+                  return alternate_path
+              return preferred_path
+
+          def load_json(path: Path, display_name: str):
               try:
                   return json.loads(path.read_text(encoding='utf-8'))
               except FileNotFoundError:
-                  add_error(f"Missing required file: {rel(path)}")
+                  add_error(f"Missing required file: {display_name}")
               except json.JSONDecodeError as exc:
-                  add_error(f"Invalid JSON in {rel(path)}: {exc}")
+                  add_error(f"Invalid JSON in {display_name}: {exc}")
               return None
 
           def is_placeholder_name(name: str) -> bool:
@@ -73,14 +92,22 @@ jobs:
           def is_placeholder_slug(slug: str) -> bool:
               return slug in PLACEHOLDER_SLUGS
 
-          if not MODS_ROOT.is_dir():
-              add_error('Missing mods/ directory.')
+          MODS_ROOT = choose_existing_dir('Mods', 'mods')
+          INDEX_ROOT = choose_existing_dir('Index', 'index')
+          INDEX_PATH = INDEX_ROOT / 'mods.json'
 
-          index_data = load_json(INDEX_PATH)
+          mods_label = MODS_ROOT.name
+          index_label = INDEX_ROOT.name
+          index_display = f"{index_label}/mods.json"
+
+          if not MODS_ROOT.is_dir():
+              add_error(f"Missing required directory: '{mods_label}/' (accepted casings: Mods/ or mods/)")
+
+          index_data = load_json(INDEX_PATH, index_display)
           if index_data is None:
               sys.exit(1)
           if not isinstance(index_data, list):
-              add_error('index/mods.json must contain a JSON array.')
+              add_error(f"{index_display} must contain a JSON array.")
               sys.exit(1)
 
           real_mod_dirs = []
@@ -102,7 +129,10 @@ jobs:
           for mod_dir in real_mod_dirs:
               mod_json_path = mod_dir / 'mod.json'
               readme_path = mod_dir / 'README.md'
-              preview_files = [p for p in mod_dir.iterdir() if p.is_file() and p.suffix.lower() in PREVIEW_EXTS and p.stem.lower() == 'preview']
+              preview_files = [
+                  p for p in mod_dir.iterdir()
+                  if p.is_file() and p.suffix.lower() in PREVIEW_EXTS and p.stem.lower() == 'preview'
+              ]
 
               if not mod_json_path.is_file():
                   add_error(f"{rel(mod_dir)} is missing mod.json")
@@ -112,7 +142,7 @@ jobs:
               if not preview_files:
                   add_error(f"{rel(mod_dir)} is missing preview image/gif (preview.png|gif|jpg|jpeg|webp)")
 
-              mod_data = load_json(mod_json_path)
+              mod_data = load_json(mod_json_path, rel(mod_json_path))
               if not isinstance(mod_data, dict):
                   continue
 
@@ -145,14 +175,15 @@ jobs:
               if name in seen_names:
                   add_error(f"Duplicate mod name in mod.json files: {name}")
               seen_names.add(name)
+
               if slug in seen_slugs:
                   add_error(f"Duplicate mod slug in mod.json files: {slug}")
               seen_slugs.add(slug)
 
-              expected_readme = f"mods/{mod_dir.name}/README.md"
+              expected_readme = f"{mods_label}/{mod_dir.name}/README.md"
               expected_preview = None
               if preview_files:
-                  expected_preview = f"mods/{mod_dir.name}/{preview_files[0].name}"
+                  expected_preview = f"{mods_label}/{mod_dir.name}/{preview_files[0].name}"
 
               declared_readme = str(mod_data.get('readme_path', '')).replace('\\', '/').strip()
               declared_preview = str(mod_data.get('preview_path', '')).replace('\\', '/').strip()
@@ -185,7 +216,7 @@ jobs:
 
           for i, entry in enumerate(index_data):
               if not isinstance(entry, dict):
-                  add_error(f"index/mods.json entry #{i + 1} must be an object")
+                  add_error(f"{index_display} entry #{i + 1} must be an object")
                   continue
 
               name = str(entry.get('name', '')).strip()
@@ -197,14 +228,15 @@ jobs:
 
               missing_keys = sorted(required_index_keys - set(entry.keys()))
               if missing_keys:
-                  add_error(f"index/mods.json entry '{name or slug or f'#{i+1}'}' is missing keys: {', '.join(missing_keys)}")
+                  add_error(f"{index_display} entry '{name or slug or f'#{i+1}'}' is missing keys: {', '.join(missing_keys)}")
                   continue
 
               if name in index_seen_names:
-                  add_error(f"Duplicate mod name in index/mods.json: {name}")
+                  add_error(f"Duplicate mod name in {index_display}: {name}")
               index_seen_names.add(name)
+
               if slug in index_seen_slugs:
-                  add_error(f"Duplicate mod slug in index/mods.json: {slug}")
+                  add_error(f"Duplicate mod slug in {index_display}: {slug}")
               index_seen_slugs.add(slug)
 
               readme_path = str(entry.get('readme_path', '')).replace('\\', '/').strip()
@@ -212,13 +244,13 @@ jobs:
               summary = str(entry.get('summary', '')).strip()
 
               if not summary:
-                  add_error(f"index/mods.json entry '{name or slug}' has an empty summary")
+                  add_error(f"{index_display} entry '{name or slug}' has an empty summary")
               if not isinstance(entry.get('official'), bool):
-                  add_error(f"index/mods.json entry '{name or slug}' field 'official' must be a boolean")
+                  add_error(f"{index_display} entry '{name or slug}' field 'official' must be a boolean")
               if not (ROOT / readme_path).is_file():
-                  add_error(f"index/mods.json entry '{name or slug}' points to missing README: {readme_path}")
+                  add_error(f"{index_display} entry '{name or slug}' points to missing README: {readme_path}")
               if not (ROOT / preview_path).is_file():
-                  add_error(f"index/mods.json entry '{name or slug}' points to missing preview: {preview_path}")
+                  add_error(f"{index_display} entry '{name or slug}' points to missing preview: {preview_path}")
 
               index_records[slug] = {
                   'name': name,
@@ -231,20 +263,20 @@ jobs:
 
           for slug, mod_entry in mod_records.items():
               if slug not in index_records:
-                  add_error(f"Mod '{slug}' exists under mods/ but is missing from index/mods.json")
+                  add_error(f"Mod '{slug}' exists under {mods_label}/ but is missing from {index_display}")
                   continue
 
               index_entry = index_records[slug]
               for field in ('name', 'slug', 'readme_path', 'preview_path', 'official'):
                   if mod_entry[field] != index_entry[field]:
                       add_error(
-                          f"Mismatch for '{slug}' between mod.json and index/mods.json field '{field}': "
+                          f"Mismatch for '{slug}' between mod.json and {index_display} field '{field}': "
                           f"'{mod_entry[field]}' vs '{index_entry[field]}'"
                       )
 
           for slug in index_records:
               if slug not in mod_records:
-                  add_error(f"index/mods.json contains '{slug}' but no matching mods/<ModName>/mod.json was found")
+                  add_error(f"{index_display} contains '{slug}' but no matching {mods_label}/<ModName>/mod.json was found")
 
           if warnings and not errors:
               print(f"Validation completed with {len(warnings)} warning(s).")

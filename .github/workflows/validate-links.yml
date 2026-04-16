@@ -5,14 +5,18 @@ on:
     branches: [ main, master ]
     paths:
       - 'Mods/**'
+      - 'mods/**'
       - 'Index/**'
+      - 'index/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/validate-links.yml'
   pull_request:
     paths:
       - 'Mods/**'
+      - 'mods/**'
       - 'Index/**'
+      - 'index/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/validate-links.yml'
@@ -42,10 +46,14 @@ jobs:
           from pathlib import Path
 
           ROOT = Path('.')
-          MODS_ROOT = ROOT / 'mods'
           PLACEHOLDER_NAMES = {'ExampleCommunityMod'}
           PLACEHOLDER_SLUGS = {'example-community-mod'}
           URL_RE = re.compile(r'https?://[^\s)\]"\'>]+')
+
+          # Known private links that should not fail validation while private.
+          PRIVATE_URL_PREFIXES = (
+              'https://github.com/RussDev7/CastleForge',
+          )
 
           errors = []
           warnings = []
@@ -58,10 +66,36 @@ jobs:
               warnings.append(message)
               print(f"::warning::{message}")
 
+          def choose_existing_dir(preferred: str, alternate: str):
+              preferred_path = ROOT / preferred
+              alternate_path = ROOT / alternate
+
+              preferred_exists = preferred_path.exists()
+              alternate_exists = alternate_path.exists()
+
+              if preferred_exists and alternate_exists:
+                  add_error(f"Both '{preferred}/' and '{alternate}/' exist. Keep only one casing.")
+                  return preferred_path
+
+              if preferred_exists:
+                  return preferred_path
+              if alternate_exists:
+                  return alternate_path
+              return preferred_path
+
+          def normalize_url(url: str) -> str:
+              return url.rstrip('/')
+
+          def is_known_private_url(url: str) -> bool:
+              normalized = normalize_url(url).lower()
+              return any(normalized.startswith(prefix.lower()) for prefix in PRIVATE_URL_PREFIXES)
+
           urls = {}
 
           def remember(url: str, source: str) -> None:
               urls.setdefault(url, []).append(source)
+
+          MODS_ROOT = choose_existing_dir('Mods', 'mods')
 
           # Root docs
           for path in [ROOT / 'README.md', ROOT / 'CONTRIBUTING.md']:
@@ -101,12 +135,15 @@ jobs:
                           remember(match.rstrip('.,;'), readme_path.as_posix())
 
           opener = urllib.request.build_opener()
-          opener.addheaders = [('User-Agent', 'CastleForge-CommunityMods-LinkValidator/1.0')]
+          opener.addheaders = [('User-Agent', 'CastleForge-CommunityMods-LinkValidator/1.1')]
 
           def check_url(url: str):
               parsed = urllib.parse.urlparse(url)
               if parsed.scheme not in {'http', 'https'} or not parsed.netloc:
                   return 'error', f"Malformed URL: {url}"
+
+              if is_known_private_url(url):
+                  return 'warning', f"Skipping private repo URL check: {url}"
 
               req = urllib.request.Request(url, method='HEAD')
               try:
