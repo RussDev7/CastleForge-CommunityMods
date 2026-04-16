@@ -8,6 +8,7 @@ on:
       - 'mods/**'
       - 'Index/**'
       - 'index/**'
+      - 'Assets/**'
       - 'assets/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
@@ -46,8 +47,6 @@ jobs:
 
           ROOT = Path('.')
           SITE = ROOT / '_site'
-          PLACEHOLDER_NAMES = {'ExampleCommunityMod'}
-          PLACEHOLDER_SLUGS = {'example-community-mod'}
 
           REPO = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
           REF = os.environ.get('GITHUB_REF_NAME', 'main')
@@ -67,11 +66,12 @@ jobs:
 
           MODS = choose_existing_dir('Mods', 'mods')
           INDEX_DIR = choose_existing_dir('Index', 'index')
-          INDEX = INDEX_DIR / 'mods.json'
-          ASSETS = ROOT / 'assets'
+          ASSETS_DIR = choose_existing_dir('Assets', 'assets')
 
+          INDEX = INDEX_DIR / 'mods.json'
           mods_label = MODS.name
           index_label = INDEX_DIR.name
+          assets_label = ASSETS_DIR.name
 
           if SITE.exists():
               shutil.rmtree(SITE)
@@ -88,7 +88,7 @@ jobs:
 
               name = str(entry.get('name', '')).strip()
               slug = str(entry.get('slug', '')).strip()
-              if name in PLACEHOLDER_NAMES or slug in PLACEHOLDER_SLUGS:
+              if not name or not slug:
                   continue
 
               summary = str(entry.get('summary', '')).strip()
@@ -142,8 +142,8 @@ jobs:
           if INDEX_DIR.exists():
               shutil.copytree(INDEX_DIR, SITE / 'index', dirs_exist_ok=True)
 
-          if ASSETS.exists():
-              shutil.copytree(ASSETS, SITE / 'assets', dirs_exist_ok=True)
+          if ASSETS_DIR.exists():
+              shutil.copytree(ASSETS_DIR, SITE / 'assets', dirs_exist_ok=True)
 
           body = '\n'.join(cards) if cards else '<p class="empty">No community mods have been published yet. Submit the first one!</p>'
 
@@ -186,7 +186,7 @@ jobs:
           <body>
             <div class="wrap">
               <header>
-                <img class="brand" src="assets/branding/Preview.png" alt="CastleForge Community Mods">
+                <img class="brand" src="assets/Branding/Preview.png" alt="CastleForge Community Mods">
                 <h1>CastleForge Community Mods</h1>
                 <p class="lead">Third-party CastleForge mods curated through the community catalog. Each entry links back to its README, source repository, and releases when available.</p>
                 <div class="toplinks">
