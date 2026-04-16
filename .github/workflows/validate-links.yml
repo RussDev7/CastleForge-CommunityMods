@@ -6,6 +6,10 @@ on:
     paths:
       - 'Mods/**'
       - 'mods/**'
+      - 'TexturePacks/**'
+      - 'texturepacks/**'
+      - 'WeaponAddons/**'
+      - 'weaponaddons/**'
       - 'Index/**'
       - 'index/**'
       - 'README.md'
@@ -15,6 +19,10 @@ on:
     paths:
       - 'Mods/**'
       - 'mods/**'
+      - 'TexturePacks/**'
+      - 'texturepacks/**'
+      - 'WeaponAddons/**'
+      - 'weaponaddons/**'
       - 'Index/**'
       - 'index/**'
       - 'README.md'
@@ -46,14 +54,19 @@ jobs:
           from pathlib import Path
 
           ROOT = Path('.')
-          PLACEHOLDER_NAMES = {'ExampleCommunityMod'}
-          PLACEHOLDER_SLUGS = {'example-community-mod'}
-          URL_RE = re.compile(r'https?://[^\s)\]"\'>]+')
+          PLACEHOLDER_NAMES = {'ExampleCommunityMod', 'ExampleTexturePack', 'ExampleWeaponAddon'}
+          PLACEHOLDER_SLUGS = {'example-community-mod', 'example-texture-pack', 'example-weapon-addon'}
+          URL_RE = re.compile(r"https?://[^\s)\]\"'>]+")
 
-          # Known private links that should not fail validation while private.
           PRIVATE_URL_PREFIXES = (
               'https://github.com/RussDev7/CastleForge',
           )
+
+          CATEGORY_ROOTS = [
+              ROOT / 'Mods', ROOT / 'mods',
+              ROOT / 'TexturePacks', ROOT / 'texturepacks',
+              ROOT / 'WeaponAddons', ROOT / 'weaponaddons',
+          ]
 
           errors = []
           warnings = []
@@ -65,23 +78,6 @@ jobs:
           def add_warning(message: str) -> None:
               warnings.append(message)
               print(f"::warning::{message}")
-
-          def choose_existing_dir(preferred: str, alternate: str):
-              preferred_path = ROOT / preferred
-              alternate_path = ROOT / alternate
-
-              preferred_exists = preferred_path.exists()
-              alternate_exists = alternate_path.exists()
-
-              if preferred_exists and alternate_exists:
-                  add_error(f"Both '{preferred}/' and '{alternate}/' exist. Keep only one casing.")
-                  return preferred_path
-
-              if preferred_exists:
-                  return preferred_path
-              if alternate_exists:
-                  return alternate_path
-              return preferred_path
 
           def normalize_url(url: str) -> str:
               return url.rstrip('/')
@@ -95,18 +91,17 @@ jobs:
           def remember(url: str, source: str) -> None:
               urls.setdefault(url, []).append(source)
 
-          MODS_ROOT = choose_existing_dir('Mods', 'mods')
-
-          # Root docs
           for path in [ROOT / 'README.md', ROOT / 'CONTRIBUTING.md']:
               if path.is_file():
                   text = path.read_text(encoding='utf-8', errors='replace')
                   for match in URL_RE.findall(text):
                       remember(match.rstrip('.,;'), path.as_posix())
 
-          # Mod JSON + README files
-          if MODS_ROOT.is_dir():
-              for mod_dir in sorted(MODS_ROOT.iterdir()):
+          for entry_root in CATEGORY_ROOTS:
+              if not entry_root.is_dir():
+                  continue
+
+              for mod_dir in sorted(entry_root.iterdir()):
                   if not mod_dir.is_dir() or mod_dir.name == '_template' or mod_dir.name.startswith('.'):
                       continue
 
@@ -135,7 +130,7 @@ jobs:
                           remember(match.rstrip('.,;'), readme_path.as_posix())
 
           opener = urllib.request.build_opener()
-          opener.addheaders = [('User-Agent', 'CastleForge-CommunityMods-LinkValidator/1.1')]
+          opener.addheaders = [('User-Agent', 'CastleForge-CommunityMods-LinkValidator/1.2')]
 
           def check_url(url: str):
               parsed = urllib.parse.urlparse(url)

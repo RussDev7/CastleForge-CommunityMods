@@ -6,6 +6,10 @@ on:
     paths:
       - 'Mods/**'
       - 'mods/**'
+      - 'TexturePacks/**'
+      - 'texturepacks/**'
+      - 'WeaponAddons/**'
+      - 'weaponaddons/**'
       - 'Index/**'
       - 'index/**'
       - 'Assets/**'
@@ -42,14 +46,21 @@ jobs:
           import html
           import json
           import shutil
-          from pathlib import Path
           import os
+          from pathlib import Path
 
           ROOT = Path('.')
           SITE = ROOT / '_site'
 
           REPO = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
           REF = os.environ.get('GITHUB_REF_NAME', 'main')
+
+          CATEGORY_CONFIG = {
+              'mod': {'preferred': 'Mods', 'alternate': 'mods', 'label': 'Mod'},
+              'texture-pack': {'preferred': 'TexturePacks', 'alternate': 'texturepacks', 'label': 'Texture Pack'},
+              'weapon-addon': {'preferred': 'WeaponAddons', 'alternate': 'weaponaddons', 'label': 'Weapon Addon'},
+          }
+          CATEGORY_ORDER = ['mod', 'texture-pack', 'weapon-addon']
 
           def choose_existing_dir(preferred: str, alternate: str) -> Path:
               preferred_path = ROOT / preferred
@@ -64,14 +75,11 @@ jobs:
                   return alternate_path
               return preferred_path
 
-          MODS = choose_existing_dir('Mods', 'mods')
           INDEX_DIR = choose_existing_dir('Index', 'index')
           ASSETS_DIR = choose_existing_dir('Assets', 'assets')
-
           INDEX = INDEX_DIR / 'mods.json'
-          mods_label = MODS.name
-          index_label = INDEX_DIR.name
-          assets_label = ASSETS_DIR.name
+
+          roots = {key: choose_existing_dir(cfg['preferred'], cfg['alternate']) for key, cfg in CATEGORY_CONFIG.items()}
 
           if SITE.exists():
               shutil.rmtree(SITE)
@@ -81,22 +89,20 @@ jobs:
           if INDEX.is_file():
               entries = json.loads(INDEX.read_text(encoding='utf-8'))
 
-          # Preserve repo casing in the published site so preview_path values
-          # from mod.json / Index/mods.json keep working as-is.
-          if MODS.exists():
-              shutil.copytree(MODS, SITE / mods_label, dirs_exist_ok=True)
+          for path in roots.values():
+              if path.exists():
+                  shutil.copytree(path, SITE / path.name, dirs_exist_ok=True)
 
           if INDEX_DIR.exists():
-              shutil.copytree(INDEX_DIR, SITE / index_label, dirs_exist_ok=True)
+              shutil.copytree(INDEX_DIR, SITE / INDEX_DIR.name, dirs_exist_ok=True)
 
           if ASSETS_DIR.exists():
-              shutil.copytree(ASSETS_DIR, SITE / assets_label, dirs_exist_ok=True)
+              shutil.copytree(ASSETS_DIR, SITE / ASSETS_DIR.name, dirs_exist_ok=True)
 
-          # Resolve a brand image path if present.
           brand_candidates = [
-              (ASSETS_DIR / 'Branding' / 'Preview.png', f'{assets_label}/Branding/Preview.png'),
-              (ASSETS_DIR / 'branding' / 'Preview.png', f'{assets_label}/branding/Preview.png'),
-              (ASSETS_DIR / 'Preview.png', f'{assets_label}/Preview.png'),
+              (ASSETS_DIR / 'Branding' / 'Preview.png', f'{ASSETS_DIR.name}/Branding/Preview.png'),
+              (ASSETS_DIR / 'branding' / 'Preview.png', f'{ASSETS_DIR.name}/branding/Preview.png'),
+              (ASSETS_DIR / 'Preview.png', f'{ASSETS_DIR.name}/Preview.png'),
           ]
           brand_src = ''
           for fs_path, site_path in brand_candidates:
@@ -105,70 +111,68 @@ jobs:
                   break
 
           cards = []
-          for entry in entries:
+          counts = {key: 0 for key in CATEGORY_CONFIG}
+
+          def category_rank(value: str) -> int:
+              try:
+                  return CATEGORY_ORDER.index(value)
+              except ValueError:
+                  return len(CATEGORY_ORDER)
+
+          def get_manifest(entry: dict):
+              category = str(entry.get('category', 'mod')).strip()
+              entry_name = str(entry.get('name', '')).strip()
+              root_dir = roots.get(category)
+              if not root_dir or not entry_name:
+                  return {}
+              manifest_path = root_dir / entry_name / 'mod.json'
+              if not manifest_path.is_file():
+                  return {}
+              try:
+                  return json.loads(manifest_path.read_text(encoding='utf-8'))
+              except Exception:
+                  return {}
+
+          for entry in sorted(entries, key=lambda x: (category_rank(str(x.get('category', 'mod'))), str(x.get('name', '')).lower())):
               if not isinstance(entry, dict):
                   continue
 
               name = str(entry.get('name', '')).strip()
               slug = str(entry.get('slug', '')).strip()
-              if not name or not slug:
+              category = str(entry.get('category', 'mod')).strip()
+              if not name or not slug or category not in CATEGORY_CONFIG:
                   continue
 
-              summary = str(entry.get('summary', '')).strip()
+              counts[category] += 1
+              category_label = CATEGORY_CONFIG[category]['label']
+              manifest = get_manifest(entry)
+
+              summary = str(manifest.get('summary', entry.get('summary', ''))).strip()
               preview_path = str(entry.get('preview_path', '')).replace('\\', '/').strip()
               readme_path = str(entry.get('readme_path', '')).replace('\\', '/').strip()
               official = bool(entry.get('official', False))
-              author = str(entry.get('author', 'Unknown')).strip()
-
-              source_repo = ''
-              releases_url = ''
-              tags_html = ''
-
-              mod_json_path = MODS / name / 'mod.json'
-              if mod_json_path.is_file():
-                  try:
-                      mod_data = json.loads(mod_json_path.read_text(encoding='utf-8'))
-                      author = str(mod_data.get('author', author)).strip()
-                      summary = str(mod_data.get('summary', summary)).strip()
-                      source_repo = str(mod_data.get('source_repo', '')).strip()
-                      releases_url = str(mod_data.get('releases_url', '')).strip()
-                      tags = mod_data.get('tags', []) if isinstance(mod_data.get('tags', []), list) else []
-                      tags_html = ''.join(f'<span class="tag">{html.escape(str(t))}</span>' for t in tags)
-                  except Exception:
-                      pass
-
-              author = html.escape(author)
+              author = str(manifest.get('author', entry.get('author', 'Unknown'))).strip() or 'Unknown'
+              source_repo = str(manifest.get('source_repo', '')).strip()
+              releases_url = str(manifest.get('releases_url', '')).strip()
+              tags = manifest.get('tags', []) if isinstance(manifest.get('tags', []), list) else []
+              tags_html = ''.join(f'<span class="tag">{html.escape(str(t))}</span>' for t in tags)
               blob_readme_url = f"{REPO}/blob/{REF}/{readme_path}" if readme_path else REPO
 
-              source_repo = ''
-              releases_url = ''
-              tags_html = ''
-
-              mod_json_path = MODS / name / 'mod.json'
-              if mod_json_path.is_file():
-                  try:
-                      mod_data = json.loads(mod_json_path.read_text(encoding='utf-8'))
-                      source_repo = str(mod_data.get('source_repo', '')).strip()
-                      releases_url = str(mod_data.get('releases_url', '')).strip()
-                      tags = mod_data.get('tags', []) if isinstance(mod_data.get('tags', []), list) else []
-                      tags_html = ''.join(f'<span class="tag">{html.escape(str(t))}</span>' for t in tags)
-                  except Exception:
-                      pass
-
               cards.append(f"""
-              <article class="card">
-                <div class="media">
-                  <img src="{html.escape(preview_path)}" alt="{html.escape(name)} preview" loading="lazy">
+              <article class="card" data-category="{html.escape(category)}">
+                <div class="media"> 
+                  <img src="{html.escape(preview_path)}" alt="{html.escape(name)} preview" loading="lazy"> 
                 </div>
-                <div class="content">
-                  <div class="heading">
+                <div class="content"> 
+                  <div class="heading"> 
                     <h2>{html.escape(name)}</h2>
+                    <span class="badge type">{html.escape(category_label)}</span>
                     <span class="badge {'official' if official else 'community'}">{'Official' if official else 'Community'}</span>
                   </div>
-                  <p class="author">By {author}</p>
+                  <p class="author">By {html.escape(author)}</p>
                   <p>{html.escape(summary)}</p>
                   <div class="tags">{tags_html}</div>
-                  <div class="links">
+                  <div class="links"> 
                     <a href="{html.escape(blob_readme_url)}">README</a>
                     {f'<a href="{html.escape(source_repo)}">Source</a>' if source_repo else ''}
                     {f'<a href="{html.escape(releases_url)}">Releases</a>' if releases_url else ''}
@@ -177,60 +181,92 @@ jobs:
               </article>
               """)
 
-          body = '\n'.join(cards) if cards else '<p class="empty">No community mods have been published yet. Submit the first one!</p>'
-          brand_html = f'<img class="brand" src="{html.escape(brand_src)}" alt="CastleForge Community Mods">' if brand_src else ''
+          body = "\n".join(cards) if cards else '<p class="empty">No community content has been published yet. Submit the first entry!</p>'
+          brand_html = f'<img class="brand" src="{html.escape(brand_src)}" alt="CastleForge Community Catalog">' if brand_src else ''
+
+          total = sum(counts.values())
+          filter_buttons = ['<button class="filter active" data-filter="all">All <span>{}</span></button>'.format(total)]
+          for key in CATEGORY_ORDER:
+              label = CATEGORY_CONFIG[key]['label'] + ('s' if not CATEGORY_CONFIG[key]['label'].endswith('k') else 's')
+              filter_buttons.append(f'<button class="filter" data-filter="{key}">{html.escape(label)} <span>{counts[key]}</span></button>')
+          filter_html = ''.join(filter_buttons)
 
           html_text = f"""<!doctype html>
           <html lang="en">
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>CastleForge Community Mods</title>
-          <style>
-            :root {{ color-scheme: dark; --bg:#0b1020; --panel:#141b2d; --text:#e8ecf3; --muted:#9aa7bd; --accent:#6ea8fe; --line:#23304a; }}
-            * {{ box-sizing:border-box; }}
-            body {{ margin:0; font-family:Segoe UI, Arial, sans-serif; background:linear-gradient(180deg,#0b1020,#11182a); color:var(--text); }}
-            .wrap {{ max-width:1200px; margin:0 auto; padding:40px 20px 64px; }}
-            header {{ margin-bottom:28px; }}
-            .brand {{ max-width:420px; margin:0 0 18px; display:block; }}
-            h1 {{ margin:0 0 10px; font-size:clamp(2rem,4vw,3rem); }}
-            p.lead {{ color:var(--muted); max-width:850px; line-height:1.6; }}
-            .toplinks {{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }}
-            .toplinks a, .links a {{ text-decoration:none; color:var(--text); background:var(--panel); border:1px solid var(--line); padding:10px 14px; border-radius:12px; display:inline-block; }}
-            .grid {{ display:grid; gap:18px; }}
-            .card {{ display:grid; grid-template-columns:minmax(240px,320px) 1fr; gap:18px; align-items:stretch; background:rgba(20,27,45,.88); border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.2); }}
-            .media {{ background:#0d1425; min-height:180px; height:100%; align-self:stretch; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:12px; }}
-            .media img {{ width:100%; height:100%; object-fit:contain; object-position:center; display:block; }}
-            .content {{ padding:20px; }}
-            .heading {{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }}
-            .heading h2 {{ margin:0; font-size:1.5rem; }}
-            .badge {{ font-size:.8rem; padding:5px 10px; border-radius:999px; border:1px solid var(--line); }}
-            .badge.community {{ color:#b7d4ff; }}
-            .badge.official {{ color:#b9f3c1; }}
-            .author {{ color:var(--muted); margin:.35rem 0 1rem; }}
-            .tags {{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 16px; }}
-            .tag {{ background:#0d1425; border:1px solid var(--line); border-radius:999px; padding:6px 10px; color:#c7d2e6; font-size:.85rem; }}
-            .links {{ display:flex; gap:10px; flex-wrap:wrap; }}
-            .empty {{ background:rgba(20,27,45,.88); border:1px dashed var(--line); padding:24px; border-radius:18px; color:var(--muted); }}
-            footer {{ margin-top:32px; color:var(--muted); font-size:.95rem; }}
-            @media (max-width: 780px) {{ .card {{ grid-template-columns:1fr; }} .media {{ min-height:220px; }} }}
-          </style>
+            <title>CastleForge Community Catalog</title>
+            <style>
+              :root {{ color-scheme: dark; --bg:#0b1020; --panel:#141b2d; --panel-2:#0d1425; --text:#e8ecf3; --muted:#9aa7bd; --accent:#6ea8fe; --line:#23304a; }}
+              * {{ box-sizing:border-box; }}
+              body {{ margin:0; font-family:Segoe UI, Arial, sans-serif; background:linear-gradient(180deg,#0b1020,#11182a); color:var(--text); }}
+              .wrap {{ max-width:1200px; margin:0 auto; padding:40px 20px 64px; }}
+              header {{ margin-bottom:24px; }}
+              .brand {{ max-width:420px; margin:0 0 18px; display:block; }}
+              h1 {{ margin:0 0 10px; font-size:clamp(2rem,4vw,3rem); }}
+              p.lead {{ color:var(--muted); max-width:850px; line-height:1.6; }}
+              .toplinks {{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }}
+              .toplinks a, .links a {{ text-decoration:none; color:var(--text); background:var(--panel); border:1px solid var(--line); padding:10px 14px; border-radius:12px; display:inline-block; }}
+              .filters {{ display:flex; gap:10px; flex-wrap:wrap; margin:24px 0; }}
+              .filter {{ border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:999px; padding:10px 14px; cursor:pointer; font:inherit; }}
+              .filter span {{ color:var(--muted); margin-left:6px; }}
+              .filter.active {{ outline:2px solid rgba(110,168,254,.35); }}
+              .grid {{ display:grid; gap:18px; }}
+              .card {{ display:grid; grid-template-columns:minmax(240px,320px) 1fr; gap:18px; align-items:stretch; background:rgba(20,27,45,.88); border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.2); }}
+              .card.hidden {{ display:none; }}
+              .media {{ background:var(--panel-2); min-height:180px; height:100%; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:12px; }}
+              .media img {{ width:100%; height:100%; object-fit:contain; object-position:center; display:block; }}
+              .content {{ padding:20px; }}
+              .heading {{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }}
+              .heading h2 {{ margin:0; font-size:1.5rem; }}
+              .badge {{ font-size:.8rem; padding:5px 10px; border-radius:999px; border:1px solid var(--line); }}
+              .badge.community {{ color:#b7d4ff; }}
+              .badge.official {{ color:#b9f3c1; }}
+              .badge.type {{ color:#ffd27a; }}
+              .author {{ color:var(--muted); margin:.35rem 0 1rem; }}
+              .tags {{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 16px; }}
+              .tag {{ background:var(--panel-2); border:1px solid var(--line); border-radius:999px; padding:6px 10px; color:#c7d2e6; font-size:.85rem; }}
+              .links {{ display:flex; gap:10px; flex-wrap:wrap; }}
+              .empty {{ background:rgba(20,27,45,.88); border:1px dashed var(--line); padding:24px; border-radius:18px; color:var(--muted); }}
+              footer {{ margin-top:32px; color:var(--muted); font-size:.95rem; }}
+              @media (max-width: 780px) {{ .card {{ grid-template-columns:1fr; }} .media {{ min-height:220px; }} }}
+            </style>
           </head>
           <body>
             <div class="wrap">
               <header>
                 {brand_html}
-                <h1>CastleForge Community Mods</h1>
-                <p class="lead">Third-party CastleForge mods curated through the community catalog. Each entry links back to its README, source repository, and releases when available.</p>
+                <h1>CastleForge Community Catalog</h1>
+                <p class="lead">Browse third-party CastleForge mods, texture packs, and weapon addons in one place. Each entry links back to its README, source repository, and release page when available.</p>
                 <div class="toplinks">
-                  <a href="{REPO}">Repository</a>
-                  <a href="{REPO}/blob/{REF}/CONTRIBUTING.md">Contributing</a>
-                  <a href="{REPO}/blob/{REF}/{index_label}/mods.json">Raw index</a>
+                  <a href="{html.escape(REPO)}">Repository</a>
+                  <a href="{html.escape(REPO)}/blob/{html.escape(REF)}/README.md">Browse contribution docs</a>
                 </div>
               </header>
-              <main class="grid">{body}</main>
-              <footer>Generated automatically from <code>{index_label}/mods.json</code> and each mod's <code>mod.json</code>.</footer>
+
+              <div class="filters" id="filters">{filter_html}</div>
+              <section class="grid" id="catalog">{body}</section>
+
+              <footer>
+                Generated from the CastleForge-CommunityMods repository using GitHub Pages.
+              </footer>
             </div>
+
+            <script>
+              const buttons = Array.from(document.querySelectorAll('.filter'));
+              const cards = Array.from(document.querySelectorAll('.card'));
+              buttons.forEach(button => {{
+                button.addEventListener('click', () => {{
+                  const value = button.dataset.filter;
+                  buttons.forEach(b => b.classList.toggle('active', b === button));
+                  cards.forEach(card => {{
+                    const show = value === 'all' || card.dataset.category === value;
+                    card.classList.toggle('hidden', !show);
+                  }});
+                }});
+              }});
+            </script>
           </body>
           </html>
           """
@@ -245,7 +281,6 @@ jobs:
           path: _site
 
   deploy:
-    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

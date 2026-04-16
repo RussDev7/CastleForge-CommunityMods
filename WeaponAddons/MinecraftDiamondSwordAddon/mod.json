@@ -1,0 +1,28 @@
+{
+  "name": "Minecraft Diamond Sword Addon",
+  "slug": "minecraft-diamond-sword-addon",
+  "category": "weapon-addon",
+  "author": "RussDev7",
+  "maintainers": [
+    "RussDev7"
+  ],
+  "summary": "A community Minecraft-themed weapon addon for CastleForge WeaponAddons that adds a custom diamond sword-style weapon pack.",
+  "game_version": "v1.9.9.8.5 Steam",
+  "castleforge_version": "WeaponAddons",
+  "license": "See source repository",
+  "source_repo": "https://github.com/RussDev7/CastleForge-Minecraft-DiamondSword-Addon",
+  "releases_url": "https://github.com/RussDev7/CastleForge-Minecraft-DiamondSword-Addon/releases",
+  "readme_path": "WeaponAddons/MinecraftDiamondSwordAddon/README.md",
+  "preview_path": "WeaponAddons/MinecraftDiamondSwordAddon/preview.png",
+  "tags": [
+    "minecraft",
+    "weapon-addon",
+    "custom-weapon",
+    "community"
+  ],
+  "dependencies": [
+    "WeaponAddons"
+  ],
+  "conflicts": [],
+  "official": false
+}

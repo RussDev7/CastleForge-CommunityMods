@@ -1,6 +1,12 @@
 ## Summary
 
-Add or update a community mod catalog entry.
+Add or update a CastleForge community catalog entry.
+
+## Content type
+
+- [ ] Mod
+- [ ] Texture Pack
+- [ ] Weapon Addon
 
 ## Included files
 

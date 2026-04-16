@@ -1,14 +1,25 @@
-name: Community mod submission
-description: Submit a third-party CastleForge mod to the community catalog.
-title: "[Community Mod]: "
+name: Community content submission
+description: Submit a third-party CastleForge mod, texture pack, or weapon addon to the community catalog.
+title: "[Community Content]: "
 labels:
   - mod-submission
 body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: Content type
+      options:
+        - Mod
+        - Texture Pack
+        - Weapon Addon
+    validations:
+      required: true
+
   - type: input
     id: mod_name
     attributes:
-      label: Mod name
-      placeholder: MyCommunityMod
+      label: Entry name
+      placeholder: MyCommunityProject
     validations:
       required: true
 
@@ -24,7 +35,7 @@ body:
     id: repo
     attributes:
       label: Source repository
-      placeholder: https://github.com/yourname/your-mod
+      placeholder: https://github.com/yourname/your-project
     validations:
       required: true
 
@@ -32,7 +43,7 @@ body:
     id: releases
     attributes:
       label: Releases / download link
-      placeholder: https://github.com/yourname/your-mod/releases
+      placeholder: https://github.com/yourname/your-project/releases
     validations:
       required: true
 
@@ -40,7 +51,7 @@ body:
     id: description
     attributes:
       label: Description
-      description: What does the mod do?
+      description: What does this project do?
     validations:
       required: true
 

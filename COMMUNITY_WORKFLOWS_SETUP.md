@@ -9,23 +9,31 @@ Included workflows:
 ## What they do
 
 ### Validate Catalog
-Checks that every real mod entry under `mods/` has:
+Checks that every real entry under these roots has:
+
 - `mod.json`
 - `README.md`
 - `preview.*`
-- matching data in `index/mods.json`
+- matching data in `Index/mods.json`
 
-It ignores the starter `_template` folder and the placeholder `ExampleCommunityMod` entry while the repo is still in scaffold mode.
+Supported roots:
+
+- `Mods/`
+- `TexturePacks/`
+- `WeaponAddons/`
+
+It ignores `_template` folders so you can keep starter scaffolding in the repo.
 
 ### Validate Links
 Checks external URLs found in:
+
 - root `README.md`
 - root `CONTRIBUTING.md`
-- each real mod `README.md`
-- each real mod `mod.json` (`source_repo`, `releases_url`)
+- each real entry `README.md`
+- each real entry `mod.json` (`source_repo`, `releases_url`)
 
 ### Deploy Catalog Site
-Builds a lightweight static catalog site and deploys it with GitHub Pages.
+Builds a lightweight static catalog site, supports category filtering, and deploys it with GitHub Pages.
 
 ## One-time GitHub setup
 
@@ -34,4 +42,4 @@ Builds a lightweight static catalog site and deploys it with GitHub Pages.
 3. Make sure GitHub Actions is enabled for the repository.
 4. Merge the workflow files into your default branch.
 
-After that, pushes to `main` or `master` that touch `mods/`, `index/`, or the relevant docs will rebuild the site.
+After that, pushes to `main` or `master` that touch `Mods/`, `TexturePacks/`, `WeaponAddons/`, `Index/`, or the relevant docs will rebuild the site.

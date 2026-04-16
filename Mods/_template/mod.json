@@ -1,6 +1,7 @@
 {
   "name": "ExampleCommunityMod",
   "slug": "example-community-mod",
+  "category": "mod",
   "author": "YourName",
   "maintainers": ["YourName"],
   "summary": "One-paragraph summary of what the mod does.",
@@ -9,8 +10,8 @@
   "license": "MIT",
   "source_repo": "https://github.com/yourname/example-community-mod",
   "releases_url": "https://github.com/yourname/example-community-mod/releases",
-  "readme_path": "mods/ExampleCommunityMod/README.md",
-  "preview_path": "mods/ExampleCommunityMod/preview.png",
+  "readme_path": "Mods/ExampleCommunityMod/README.md",
+  "preview_path": "Mods/ExampleCommunityMod/preview.png",
   "tags": ["qol", "ui", "multiplayer"],
   "dependencies": [],
   "conflicts": [],

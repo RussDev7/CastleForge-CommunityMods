@@ -6,6 +6,10 @@ on:
     paths:
       - 'Mods/**'
       - 'mods/**'
+      - 'TexturePacks/**'
+      - 'texturepacks/**'
+      - 'WeaponAddons/**'
+      - 'weaponaddons/**'
       - 'Index/**'
       - 'index/**'
       - 'README.md'
@@ -15,6 +19,10 @@ on:
     paths:
       - 'Mods/**'
       - 'mods/**'
+      - 'TexturePacks/**'
+      - 'texturepacks/**'
+      - 'WeaponAddons/**'
+      - 'weaponaddons/**'
       - 'Index/**'
       - 'index/**'
       - 'README.md'
@@ -47,16 +55,18 @@ jobs:
           errors = []
           warnings = []
 
+          CATEGORY_CONFIG = {
+              'mod': {'preferred': 'Mods', 'alternate': 'mods', 'label': 'Mods'},
+              'texture-pack': {'preferred': 'TexturePacks', 'alternate': 'texturepacks', 'label': 'TexturePacks'},
+              'weapon-addon': {'preferred': 'WeaponAddons', 'alternate': 'weaponaddons', 'label': 'WeaponAddons'},
+          }
+
           def rel(path: Path) -> str:
               return path.as_posix()
 
           def add_error(message: str) -> None:
               errors.append(message)
               print(f"::error::{message}")
-
-          def add_warning(message: str) -> None:
-              warnings.append(message)
-              print(f"::warning::{message}")
 
           def choose_existing_dir(preferred: str, alternate: str):
               preferred_path = ROOT / preferred
@@ -84,16 +94,9 @@ jobs:
                   add_error(f"Invalid JSON in {display_name}: {exc}")
               return None
 
-          MODS_ROOT = choose_existing_dir('Mods', 'mods')
           INDEX_ROOT = choose_existing_dir('Index', 'index')
           INDEX_PATH = INDEX_ROOT / 'mods.json'
-
-          mods_label = MODS_ROOT.name
-          index_label = INDEX_ROOT.name
-          index_display = f"{index_label}/mods.json"
-
-          if not MODS_ROOT.is_dir():
-              add_error(f"Missing required directory: '{mods_label}/' (accepted casings: Mods/ or mods/)")
+          index_display = f"{INDEX_ROOT.name}/mods.json"
 
           index_data = load_json(INDEX_PATH, index_display)
           if index_data is None:
@@ -102,109 +105,119 @@ jobs:
               add_error(f"{index_display} must contain a JSON array.")
               sys.exit(1)
 
-          real_mod_dirs = []
-          if MODS_ROOT.is_dir():
-              for child in sorted(MODS_ROOT.iterdir()):
-                  if child.is_dir() and not child.name.startswith('.') and child.name != '_template':
-                      real_mod_dirs.append(child)
+          category_roots = {}
+          for category, cfg in CATEGORY_CONFIG.items():
+              category_roots[category] = choose_existing_dir(cfg['preferred'], cfg['alternate'])
 
           mod_records = {}
           seen_names = set()
           seen_slugs = set()
 
           required_mod_keys = {
-              'name', 'slug', 'author', 'summary', 'game_version', 'castleforge_version',
+              'name', 'slug', 'category', 'author', 'summary', 'game_version', 'castleforge_version',
               'license', 'source_repo', 'releases_url', 'readme_path', 'preview_path',
               'tags', 'official'
           }
 
-          for mod_dir in real_mod_dirs:
-              mod_json_path = mod_dir / 'mod.json'
-              readme_path = mod_dir / 'README.md'
-              preview_files = [
-                  p for p in mod_dir.iterdir()
-                  if p.is_file() and p.suffix.lower() in PREVIEW_EXTS and p.stem.lower() == 'preview'
+          for category, mod_root in category_roots.items():
+              label = CATEGORY_CONFIG[category]['label']
+              if not mod_root.is_dir():
+                  continue
+
+              real_dirs = [
+                  child for child in sorted(mod_root.iterdir())
+                  if child.is_dir() and not child.name.startswith('.') and child.name != '_template'
               ]
 
-              if not mod_json_path.is_file():
-                  add_error(f"{rel(mod_dir)} is missing mod.json")
-                  continue
-              if not readme_path.is_file():
-                  add_error(f"{rel(mod_dir)} is missing README.md")
-              if not preview_files:
-                  add_error(f"{rel(mod_dir)} is missing preview image/gif (preview.png|gif|jpg|jpeg|webp)")
+              for mod_dir in real_dirs:
+                  mod_json_path = mod_dir / 'mod.json'
+                  readme_path = mod_dir / 'README.md'
+                  preview_files = [
+                      p for p in mod_dir.iterdir()
+                      if p.is_file() and p.suffix.lower() in PREVIEW_EXTS and p.stem.lower() == 'preview'
+                  ]
 
-              mod_data = load_json(mod_json_path, rel(mod_json_path))
-              if not isinstance(mod_data, dict):
-                  continue
+                  if not mod_json_path.is_file():
+                      add_error(f"{rel(mod_dir)} is missing mod.json")
+                      continue
+                  if not readme_path.is_file():
+                      add_error(f"{rel(mod_dir)} is missing README.md")
+                  if not preview_files:
+                      add_error(f"{rel(mod_dir)} is missing preview image/gif (preview.png|gif|jpg|jpeg|webp)")
 
-              missing_keys = sorted(required_mod_keys - set(mod_data.keys()))
-              if missing_keys:
-                  add_error(f"{rel(mod_json_path)} is missing keys: {', '.join(missing_keys)}")
-                  continue
+                  mod_data = load_json(mod_json_path, rel(mod_json_path))
+                  if not isinstance(mod_data, dict):
+                      continue
 
-              name = str(mod_data.get('name', '')).strip()
-              slug = str(mod_data.get('slug', '')).strip()
-              summary = str(mod_data.get('summary', '')).strip()
+                  missing_keys = sorted(required_mod_keys - set(mod_data.keys()))
+                  if missing_keys:
+                      add_error(f"{rel(mod_json_path)} is missing keys: {', '.join(missing_keys)}")
+                      continue
 
-              if not name:
-                  add_error(f"{rel(mod_json_path)} has an empty name")
-              if not slug:
-                  add_error(f"{rel(mod_json_path)} has an empty slug")
-              if not summary:
-                  add_error(f"{rel(mod_json_path)} has an empty summary")
-              if not isinstance(mod_data.get('tags'), list):
-                  add_error(f"{rel(mod_json_path)} field 'tags' must be an array")
-              if not isinstance(mod_data.get('official'), bool):
-                  add_error(f"{rel(mod_json_path)} field 'official' must be a boolean")
-              if 'maintainers' in mod_data and not isinstance(mod_data.get('maintainers'), list):
-                  add_error(f"{rel(mod_json_path)} field 'maintainers' must be an array when present")
-              if 'dependencies' in mod_data and not isinstance(mod_data.get('dependencies'), list):
-                  add_error(f"{rel(mod_json_path)} field 'dependencies' must be an array when present")
-              if 'conflicts' in mod_data and not isinstance(mod_data.get('conflicts'), list):
-                  add_error(f"{rel(mod_json_path)} field 'conflicts' must be an array when present")
+                  name = str(mod_data.get('name', '')).strip()
+                  slug = str(mod_data.get('slug', '')).strip()
+                  summary = str(mod_data.get('summary', '')).strip()
+                  declared_category = str(mod_data.get('category', '')).strip()
 
-              if name in seen_names:
-                  add_error(f"Duplicate mod name in mod.json files: {name}")
-              seen_names.add(name)
+                  if declared_category != category:
+                      add_error(f"{rel(mod_json_path)} category should be '{category}', got '{declared_category}'")
+                  if not name:
+                      add_error(f"{rel(mod_json_path)} has an empty name")
+                  if not slug:
+                      add_error(f"{rel(mod_json_path)} has an empty slug")
+                  if not summary:
+                      add_error(f"{rel(mod_json_path)} has an empty summary")
+                  if not isinstance(mod_data.get('tags'), list):
+                      add_error(f"{rel(mod_json_path)} field 'tags' must be an array")
+                  if not isinstance(mod_data.get('official'), bool):
+                      add_error(f"{rel(mod_json_path)} field 'official' must be a boolean")
+                  if 'maintainers' in mod_data and not isinstance(mod_data.get('maintainers'), list):
+                      add_error(f"{rel(mod_json_path)} field 'maintainers' must be an array when present")
+                  if 'dependencies' in mod_data and not isinstance(mod_data.get('dependencies'), list):
+                      add_error(f"{rel(mod_json_path)} field 'dependencies' must be an array when present")
+                  if 'conflicts' in mod_data and not isinstance(mod_data.get('conflicts'), list):
+                      add_error(f"{rel(mod_json_path)} field 'conflicts' must be an array when present")
 
-              if slug in seen_slugs:
-                  add_error(f"Duplicate mod slug in mod.json files: {slug}")
-              seen_slugs.add(slug)
+                  if name in seen_names:
+                      add_error(f"Duplicate entry name in mod.json files: {name}")
+                  seen_names.add(name)
 
-              expected_readme = f"{mods_label}/{mod_dir.name}/README.md"
-              expected_preview = None
-              if preview_files:
-                  expected_preview = f"{mods_label}/{mod_dir.name}/{preview_files[0].name}"
+                  if slug in seen_slugs:
+                      add_error(f"Duplicate entry slug in mod.json files: {slug}")
+                  seen_slugs.add(slug)
 
-              declared_readme = str(mod_data.get('readme_path', '')).replace('\\', '/').strip()
-              declared_preview = str(mod_data.get('preview_path', '')).replace('\\', '/').strip()
-              declared_readme_path = ROOT / declared_readme if declared_readme else None
-              declared_preview_path = ROOT / declared_preview if declared_preview else None
+                  expected_readme = f"{mod_root.name}/{mod_dir.name}/README.md"
+                  expected_preview = f"{mod_root.name}/{mod_dir.name}/{preview_files[0].name}" if preview_files else None
 
-              if declared_readme != expected_readme:
-                  add_error(f"{rel(mod_json_path)} readme_path should be '{expected_readme}', got '{declared_readme}'")
-              elif declared_readme_path and not declared_readme_path.is_file():
-                  add_error(f"{rel(mod_json_path)} points to missing README file: {declared_readme}")
+                  declared_readme = str(mod_data.get('readme_path', '')).replace('\\', '/').strip()
+                  declared_preview = str(mod_data.get('preview_path', '')).replace('\\', '/').strip()
+                  declared_readme_path = ROOT / declared_readme if declared_readme else None
+                  declared_preview_path = ROOT / declared_preview if declared_preview else None
 
-              if expected_preview and declared_preview != expected_preview:
-                  add_error(f"{rel(mod_json_path)} preview_path should be '{expected_preview}', got '{declared_preview}'")
-              elif declared_preview_path and not declared_preview_path.is_file():
-                  add_error(f"{rel(mod_json_path)} points to missing preview file: {declared_preview}")
+                  if declared_readme != expected_readme:
+                      add_error(f"{rel(mod_json_path)} readme_path should be '{expected_readme}', got '{declared_readme}'")
+                  elif declared_readme_path and not declared_readme_path.is_file():
+                      add_error(f"{rel(mod_json_path)} points to missing README file: {declared_readme}")
 
-              mod_records[slug] = {
-                  'name': name,
-                  'slug': slug,
-                  'summary': summary,
-                  'readme_path': declared_readme,
-                  'preview_path': declared_preview,
-                  'official': mod_data.get('official', False),
-              }
+                  if expected_preview and declared_preview != expected_preview:
+                      add_error(f"{rel(mod_json_path)} preview_path should be '{expected_preview}', got '{declared_preview}'")
+                  elif declared_preview_path and not declared_preview_path.is_file():
+                      add_error(f"{rel(mod_json_path)} points to missing preview file: {declared_preview}")
+
+                  mod_records[slug] = {
+                      'name': name,
+                      'slug': slug,
+                      'category': declared_category,
+                      'summary': summary,
+                      'readme_path': declared_readme,
+                      'preview_path': declared_preview,
+                      'official': mod_data.get('official', False),
+                  }
 
           index_seen_names = set()
           index_seen_slugs = set()
           index_records = {}
-          required_index_keys = {'name', 'slug', 'author', 'summary', 'readme_path', 'preview_path', 'official'}
+          required_index_keys = {'name', 'slug', 'category', 'author', 'summary', 'readme_path', 'preview_path', 'official'}
 
           for i, entry in enumerate(index_data):
               if not isinstance(entry, dict):
@@ -213,18 +226,22 @@ jobs:
 
               name = str(entry.get('name', '')).strip()
               slug = str(entry.get('slug', '')).strip()
+              category = str(entry.get('category', '')).strip()
 
               missing_keys = sorted(required_index_keys - set(entry.keys()))
               if missing_keys:
                   add_error(f"{index_display} entry '{name or slug or f'#{i+1}'}' is missing keys: {', '.join(missing_keys)}")
                   continue
 
+              if category not in CATEGORY_CONFIG:
+                  add_error(f"{index_display} entry '{name or slug}' has invalid category '{category}'")
+
               if name in index_seen_names:
-                  add_error(f"Duplicate mod name in {index_display}: {name}")
+                  add_error(f"Duplicate entry name in {index_display}: {name}")
               index_seen_names.add(name)
 
               if slug in index_seen_slugs:
-                  add_error(f"Duplicate mod slug in {index_display}: {slug}")
+                  add_error(f"Duplicate entry slug in {index_display}: {slug}")
               index_seen_slugs.add(slug)
 
               readme_path = str(entry.get('readme_path', '')).replace('\\', '/').strip()
@@ -243,6 +260,7 @@ jobs:
               index_records[slug] = {
                   'name': name,
                   'slug': slug,
+                  'category': category,
                   'summary': summary,
                   'readme_path': readme_path,
                   'preview_path': preview_path,
@@ -251,11 +269,11 @@ jobs:
 
           for slug, mod_entry in mod_records.items():
               if slug not in index_records:
-                  add_error(f"Mod '{slug}' exists under {mods_label}/ but is missing from {index_display}")
+                  add_error(f"Entry '{slug}' exists in the content folders but is missing from {index_display}")
                   continue
 
               index_entry = index_records[slug]
-              for field in ('name', 'slug', 'readme_path', 'preview_path', 'official'):
+              for field in ('name', 'slug', 'category', 'readme_path', 'preview_path', 'official'):
                   if mod_entry[field] != index_entry[field]:
                       add_error(
                           f"Mismatch for '{slug}' between mod.json and {index_display} field '{field}': "
@@ -264,13 +282,12 @@ jobs:
 
           for slug in index_records:
               if slug not in mod_records:
-                  add_error(f"{index_display} contains '{slug}' but no matching {mods_label}/<ModName>/mod.json was found")
+                  add_error(f"{index_display} contains '{slug}' but no matching entry folder was found")
 
-          if warnings and not errors:
-              print(f"Validation completed with {len(warnings)} warning(s).")
           if errors:
-              print(f"Validation failed with {len(errors)} error(s).")
+              print(f"Catalog validation failed with {len(errors)} error(s).")
               sys.exit(1)
 
-          print(f"Catalog validation passed for {len(mod_records)} real mod(s).")
+          total = len(mod_records)
+          print(f"Catalog validation passed for {total} real entr{'y' if total == 1 else 'ies' }.")
           PY

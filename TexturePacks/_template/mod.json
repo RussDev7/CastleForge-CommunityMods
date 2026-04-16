@@ -1,0 +1,19 @@
+{
+  "name": "ExampleTexturePack",
+  "slug": "example-texture-pack",
+  "category": "texture-pack",
+  "author": "YourName",
+  "maintainers": ["YourName"],
+  "summary": "One-paragraph summary of what this entry does.",
+  "game_version": "v1.9.9.8.5 Steam",
+  "castleforge_version": "core-v0.1.0+",
+  "license": "MIT",
+  "source_repo": "https://github.com/yourname/example-texture-pack",
+  "releases_url": "https://github.com/yourname/example-texture-pack/releases",
+  "readme_path": "TexturePacks/ExampleTexturePack/README.md",
+  "preview_path": "TexturePacks/ExampleTexturePack/preview.png",
+  "tags": ["community", "texture-pack"],
+  "dependencies": [],
+  "conflicts": [],
+  "official": false
+}
