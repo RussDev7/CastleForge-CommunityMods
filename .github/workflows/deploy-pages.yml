@@ -205,7 +205,7 @@ jobs:
               body {{ margin:0; font-family:Segoe UI, Arial, sans-serif; background:linear-gradient(180deg,#0b1020,#11182a); color:var(--text); }}
               .wrap {{ max-width:1200px; margin:0 auto; padding:40px 20px 64px; }}
               header {{ margin-bottom:24px; }}
-              .brand {{ max-width:420px; margin:0 0 18px; display:block; }}
+              .brand {{ width: min(100%, 760px); height: auto; margin: 0 0 18px; display: block; }}
               h1 {{ margin:0 0 10px; font-size:clamp(2rem,4vw,3rem); }}
               p.lead {{ color:var(--muted); max-width:850px; line-height:1.6; }}
               .toplinks {{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }}
