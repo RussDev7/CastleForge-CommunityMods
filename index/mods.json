@@ -1,0 +1,11 @@
+[
+  {
+    "name": "ExampleCommunityMod",
+    "slug": "example-community-mod",
+    "author": "YourName",
+    "summary": "Example catalog entry.",
+    "readme_path": "mods/ExampleCommunityMod/README.md",
+    "preview_path": "mods/ExampleCommunityMod/preview.png",
+    "official": false
+  }
+]

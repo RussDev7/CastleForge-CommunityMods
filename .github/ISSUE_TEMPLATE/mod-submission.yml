@@ -1,0 +1,61 @@
+name: Community mod submission
+description: Submit a third-party CastleForge mod to the community catalog.
+title: "[Community Mod]: "
+labels:
+  - mod-submission
+body:
+  - type: input
+    id: mod_name
+    attributes:
+      label: Mod name
+      placeholder: MyCommunityMod
+    validations:
+      required: true
+
+  - type: input
+    id: author
+    attributes:
+      label: Author / maintainer
+      placeholder: GitHub username or display name
+    validations:
+      required: true
+
+  - type: input
+    id: repo
+    attributes:
+      label: Source repository
+      placeholder: https://github.com/yourname/your-mod
+    validations:
+      required: true
+
+  - type: input
+    id: releases
+    attributes:
+      label: Releases / download link
+      placeholder: https://github.com/yourname/your-mod/releases
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What does the mod do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility
+      description: Game version, CastleForge version, known conflicts, dependencies.
+    validations:
+      required: true
+
+  - type: textarea
+    id: licensing
+    attributes:
+      label: License / redistribution
+      description: Confirm the listing assets and linked files can be shared.
+    validations:
+      required: true
