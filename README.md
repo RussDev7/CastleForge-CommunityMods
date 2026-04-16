@@ -105,3 +105,11 @@ A community mod listed here may later be promoted into the main **CastleForge** 
 - well documented
 - compatible with current CastleForge standards
 - something the CastleForge maintainers choose to officially support
+
+## Support CastleForge
+
+Want to support the core CastleForge project that powers the official ecosystem?
+
+[![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://buymeacoffee.com/castleforge)
+
+> This supports the main CastleForge project and its infrastructure. Community-listed mods may be maintained by independent creators.
