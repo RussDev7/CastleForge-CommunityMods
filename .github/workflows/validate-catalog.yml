@@ -42,8 +42,6 @@ jobs:
           from pathlib import Path
 
           ROOT = Path('.')
-          PLACEHOLDER_NAMES = {'ExampleCommunityMod'}
-          PLACEHOLDER_SLUGS = {'example-community-mod'}
           PREVIEW_EXTS = {'.png', '.gif', '.jpg', '.jpeg', '.webp'}
 
           errors = []
@@ -85,12 +83,6 @@ jobs:
               except json.JSONDecodeError as exc:
                   add_error(f"Invalid JSON in {display_name}: {exc}")
               return None
-
-          def is_placeholder_name(name: str) -> bool:
-              return name in PLACEHOLDER_NAMES
-
-          def is_placeholder_slug(slug: str) -> bool:
-              return slug in PLACEHOLDER_SLUGS
 
           MODS_ROOT = choose_existing_dir('Mods', 'mods')
           INDEX_ROOT = choose_existing_dir('Index', 'index')
@@ -221,10 +213,6 @@ jobs:
 
               name = str(entry.get('name', '')).strip()
               slug = str(entry.get('slug', '')).strip()
-
-              if is_placeholder_name(name) or is_placeholder_slug(slug):
-                  add_warning(f"Ignoring placeholder index entry '{name or slug}' while validating starter scaffold.")
-                  continue
 
               missing_keys = sorted(required_index_keys - set(entry.keys()))
               if missing_keys:
