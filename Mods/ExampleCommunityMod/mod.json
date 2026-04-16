@@ -1,13 +1,13 @@
 {
   "name": "ExampleCommunityMod",
   "slug": "example-community-mod",
-  "author": "YourNameHere",
-  "summary": "A sample third-party CastleForge mod entry that demonstrates how to structure a community submission with metadata, README documentation, and preview media.",
-  "game_version": "1.9.9.8.5",
+  "author": "RussDev7",
+  "summary": "A sample third-party CastleForge mod entry that demonstrates how to structure a community submission with metadata, documentation, and preview media.",
+  "game_version": "1.9.9.8",
   "castleforge_version": "0.1.0",
   "license": "MIT",
-  "source_repo": "https://github.com/YourNameHere/ExampleCommunityMod",
-  "releases_url": "https://github.com/YourNameHere/ExampleCommunityMod/releases",
+  "source_repo": "https://github.com/RussDev7/CastleForge-ExampleCommunityMod",
+  "releases_url": "https://github.com/RussDev7/CastleForge-ExampleCommunityMod/releases",
   "readme_path": "Mods/ExampleCommunityMod/README.md",
   "preview_path": "Mods/ExampleCommunityMod/preview.png",
   "tags": [
