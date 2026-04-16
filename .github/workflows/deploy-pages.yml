@@ -81,6 +81,29 @@ jobs:
           if INDEX.is_file():
               entries = json.loads(INDEX.read_text(encoding='utf-8'))
 
+          # Preserve repo casing in the published site so preview_path values
+          # from mod.json / Index/mods.json keep working as-is.
+          if MODS.exists():
+              shutil.copytree(MODS, SITE / mods_label, dirs_exist_ok=True)
+
+          if INDEX_DIR.exists():
+              shutil.copytree(INDEX_DIR, SITE / index_label, dirs_exist_ok=True)
+
+          if ASSETS_DIR.exists():
+              shutil.copytree(ASSETS_DIR, SITE / assets_label, dirs_exist_ok=True)
+
+          # Resolve a brand image path if present.
+          brand_candidates = [
+              (ASSETS_DIR / 'Branding' / 'Preview.png', f'{assets_label}/Branding/Preview.png'),
+              (ASSETS_DIR / 'branding' / 'Preview.png', f'{assets_label}/branding/Preview.png'),
+              (ASSETS_DIR / 'Preview.png', f'{assets_label}/Preview.png'),
+          ]
+          brand_src = ''
+          for fs_path, site_path in brand_candidates:
+              if fs_path.is_file():
+                  brand_src = site_path
+                  break
+
           cards = []
           for entry in entries:
               if not isinstance(entry, dict):
@@ -136,16 +159,8 @@ jobs:
               </article>
               """)
 
-          if MODS.exists():
-              shutil.copytree(MODS, SITE / 'mods', dirs_exist_ok=True)
-
-          if INDEX_DIR.exists():
-              shutil.copytree(INDEX_DIR, SITE / 'index', dirs_exist_ok=True)
-
-          if ASSETS_DIR.exists():
-              shutil.copytree(ASSETS_DIR, SITE / 'assets', dirs_exist_ok=True)
-
           body = '\n'.join(cards) if cards else '<p class="empty">No community mods have been published yet. Submit the first one!</p>'
+          brand_html = f'<img class="brand" src="{html.escape(brand_src)}" alt="CastleForge Community Mods">' if brand_src else ''
 
           html_text = f"""<!doctype html>
           <html lang="en">
@@ -186,7 +201,7 @@ jobs:
           <body>
             <div class="wrap">
               <header>
-                <img class="brand" src="assets/Branding/Preview.png" alt="CastleForge Community Mods">
+                {brand_html}
                 <h1>CastleForge Community Mods</h1>
                 <p class="lead">Third-party CastleForge mods curated through the community catalog. Each entry links back to its README, source repository, and releases when available.</p>
                 <div class="toplinks">

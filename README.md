@@ -6,6 +6,25 @@ This repository is the **community catalog / hub** for third-party CastleForge m
 
 It is intentionally separate from the main CastleForge repository so the core platform and official mods can stay stable, focused, and easy to maintain.
 
+## Browse Community Mods Online
+
+Just here to browse mods?
+
+Visit the live **CastleForge Community Mod Browser**:
+
+➡️ **[Open the Mod Browser](https://russdev7.github.io/CastleForge-CommunityMods/)**
+
+You do **not** need to dig through folders or JSON files to explore submissions.  
+The browser is the easiest way to:
+
+- preview community mods
+- open each mod’s README
+- jump to source repositories
+- find release/download links
+
+> Use this GitHub repository if you want to **submit**, **edit**, or **maintain** catalog entries.  
+> Use the website if you just want to **browse community mods**.
+
 ## What belongs here
 
 This repository is a good home for:
