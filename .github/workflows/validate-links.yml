@@ -1,0 +1,144 @@
+name: Validate Links
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'mods/**'
+      - 'index/**'
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - '.github/workflows/validate-links.yml'
+  pull_request:
+    paths:
+      - 'mods/**'
+      - 'index/**'
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - '.github/workflows/validate-links.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-links:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Validate external links
+        shell: bash
+        run: |
+          python <<'PY'
+          import json
+          import re
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          ROOT = Path('.')
+          MODS_ROOT = ROOT / 'mods'
+          PLACEHOLDER_NAMES = {'ExampleCommunityMod'}
+          PLACEHOLDER_SLUGS = {'example-community-mod'}
+          URL_RE = re.compile(r'https?://[^\s)\]"\'>]+')
+
+          errors = []
+          warnings = []
+
+          def add_error(message: str) -> None:
+              errors.append(message)
+              print(f"::error::{message}")
+
+          def add_warning(message: str) -> None:
+              warnings.append(message)
+              print(f"::warning::{message}")
+
+          urls = {}
+
+          def remember(url: str, source: str) -> None:
+              urls.setdefault(url, []).append(source)
+
+          # Root docs
+          for path in [ROOT / 'README.md', ROOT / 'CONTRIBUTING.md']:
+              if path.is_file():
+                  text = path.read_text(encoding='utf-8', errors='replace')
+                  for match in URL_RE.findall(text):
+                      remember(match.rstrip('.,;'), path.as_posix())
+
+          # Mod JSON + README files
+          if MODS_ROOT.is_dir():
+              for mod_dir in sorted(MODS_ROOT.iterdir()):
+                  if not mod_dir.is_dir() or mod_dir.name == '_template' or mod_dir.name.startswith('.'):
+                      continue
+
+                  mod_json_path = mod_dir / 'mod.json'
+                  if mod_json_path.is_file():
+                      try:
+                          mod_data = json.loads(mod_json_path.read_text(encoding='utf-8'))
+                      except Exception as exc:
+                          add_error(f"Could not parse {mod_json_path.as_posix()}: {exc}")
+                          continue
+
+                      name = str(mod_data.get('name', '')).strip()
+                      slug = str(mod_data.get('slug', '')).strip()
+                      if name in PLACEHOLDER_NAMES or slug in PLACEHOLDER_SLUGS:
+                          continue
+
+                      for key in ('source_repo', 'releases_url'):
+                          value = str(mod_data.get(key, '')).strip()
+                          if value:
+                              remember(value, f"{mod_json_path.as_posix()}::{key}")
+
+                  readme_path = mod_dir / 'README.md'
+                  if readme_path.is_file():
+                      text = readme_path.read_text(encoding='utf-8', errors='replace')
+                      for match in URL_RE.findall(text):
+                          remember(match.rstrip('.,;'), readme_path.as_posix())
+
+          opener = urllib.request.build_opener()
+          opener.addheaders = [('User-Agent', 'CastleForge-CommunityMods-LinkValidator/1.0')]
+
+          def check_url(url: str):
+              parsed = urllib.parse.urlparse(url)
+              if parsed.scheme not in {'http', 'https'} or not parsed.netloc:
+                  return 'error', f"Malformed URL: {url}"
+
+              req = urllib.request.Request(url, method='HEAD')
+              try:
+                  with opener.open(req, timeout=20) as resp:
+                      code = getattr(resp, 'status', None) or resp.getcode()
+              except urllib.error.HTTPError as exc:
+                  code = exc.code
+              except Exception as exc:
+                  return 'warning', f"Could not verify {url}: {exc}"
+
+              if 200 <= code < 400:
+                  return 'ok', None
+              if code in {401, 403, 405}:
+                  return 'warning', f"Received HTTP {code} for {url}; treating as reachable but restricted."
+              if code in {404, 410}:
+                  return 'error', f"Received HTTP {code} for {url}"
+              return 'warning', f"Received HTTP {code} for {url}; review manually."
+
+          for url, sources in sorted(urls.items()):
+              status, message = check_url(url)
+              source_list = ', '.join(sorted(sources))
+              if status == 'error':
+                  add_error(f"{message} (referenced from {source_list})")
+              elif status == 'warning':
+                  add_warning(f"{message} (referenced from {source_list})")
+
+          if errors:
+              print(f"Link validation failed with {len(errors)} error(s).")
+              sys.exit(1)
+
+          if warnings:
+              print(f"Link validation completed with {len(warnings)} warning(s).")
+          else:
+              print(f"Validated {len(urls)} external link(s).")
+          PY
