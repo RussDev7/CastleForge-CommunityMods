@@ -145,6 +145,20 @@ Yes, but only in the right way.
 
 That means public projects like **Minecraft Pack** and **MCDiamondSword** are good fits for real catalog entries once they have a public repository, a clear README, and a stable place to download them from.
 
+---
+
+## Still need help?
+
+If you need help with the community catalog, submission process, or a listed entry, you can reach out here:
+
+- **DM me on Discord:** [dannyruss](https://discordapp.com/users/364835156587970580) (_RussDev7)
+- **Join the CastleForge Discord server:** [Discord Server](https://discord.gg/j3PcNJmry5)
+
+> For support with a specific community project, please also check that project's own README, repository, and release page first.
+> Community-listed projects may be maintained by independent creators and can have different support levels.
+
+---
+
 ## Support CastleForge
 
 Want to support the core CastleForge project that powers the official ecosystem?
