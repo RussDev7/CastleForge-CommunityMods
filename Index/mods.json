@@ -1,0 +1,77 @@
+[
+  {
+    "name": "ExampleCommunityMod",
+    "slug": "example-community-mod",
+    "category": "mod",
+    "author": "RussDev7",
+    "summary": "A sample third-party CastleForge mod entry that demonstrates how to structure a community submission with metadata, documentation, and preview media.",
+    "readme_path": "Mods/ExampleCommunityMod/README.md",
+    "preview_path": "Mods/ExampleCommunityMod/preview.png",
+    "official": false,
+    "source_repo": "https://github.com/RussDev7/CastleForge-ExampleCommunityMod",
+    "releases_url": "https://github.com/RussDev7/CastleForge-ExampleCommunityMod/releases",
+    "game_version": "1.9.9.8",
+    "castleforge_version": "0.1.0",
+    "license": "MIT",
+    "tags": [
+      "example",
+      "template",
+      "starter",
+      "community"
+    ]
+  },
+  {
+    "name": "Minecraft Texture Pack",
+    "slug": "minecraft-texture-pack",
+    "category": "texture-pack",
+    "author": "RussDev7",
+    "summary": "A community Minecraft-themed texture pack for CastleForge TexturePacks that re-skins CastleMiner Z visuals with a Minecraft-inspired look.",
+    "readme_path": "TexturePacks/MinecraftTexturePack/README.md",
+    "preview_path": "TexturePacks/MinecraftTexturePack/preview.png",
+    "official": false,
+    "source_repo": "https://github.com/RussDev7/CastleForge-Minecraft-TexturePack",
+    "releases_url": "https://github.com/RussDev7/CastleForge-Minecraft-TexturePack/releases",
+    "game_version": "v1.9.9.8.5 Steam",
+    "castleforge_version": "TexturePacks",
+    "license": "See source repository",
+    "tags": [
+      "minecraft",
+      "texture-pack",
+      "visual-overhaul",
+      "community"
+    ],
+    "maintainers": [
+      "RussDev7"
+    ],
+    "dependencies": [
+      "TexturePacks"
+    ]
+  },
+  {
+    "name": "Minecraft Diamond Sword Addon",
+    "slug": "minecraft-diamond-sword-addon",
+    "category": "weapon-addon",
+    "author": "RussDev7",
+    "summary": "A community Minecraft-themed weapon addon for CastleForge WeaponAddons that adds a custom diamond sword-style weapon pack.",
+    "readme_path": "WeaponAddons/MinecraftDiamondSwordAddon/README.md",
+    "preview_path": "WeaponAddons/MinecraftDiamondSwordAddon/preview.png",
+    "official": false,
+    "source_repo": "https://github.com/RussDev7/CastleForge-Minecraft-DiamondSword-Addon",
+    "releases_url": "https://github.com/RussDev7/CastleForge-Minecraft-DiamondSword-Addon/releases",
+    "game_version": "v1.9.9.8.5 Steam",
+    "castleforge_version": "WeaponAddons",
+    "license": "See source repository",
+    "tags": [
+      "minecraft",
+      "weapon-addon",
+      "custom-weapon",
+      "community"
+    ],
+    "maintainers": [
+      "RussDev7"
+    ],
+    "dependencies": [
+      "WeaponAddons"
+    ]
+  }
+]
