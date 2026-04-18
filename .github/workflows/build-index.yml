@@ -1,0 +1,185 @@
+name: Build Index
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'Mods/**'
+      - 'mods/**'
+      - 'TexturePacks/**'
+      - 'texturepacks/**'
+      - 'WeaponAddons/**'
+      - 'weaponaddons/**'
+      - '.github/workflows/build-index.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-index:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Generate Index/mods.json from entry manifests
+        shell: bash
+        run: |
+          python <<'PY'
+          import json
+          from pathlib import Path
+
+          ROOT = Path('.')
+          INDEX_PATH = ROOT / 'Index' / 'mods.json'
+          PREVIEW_EXTS = {'.png', '.gif', '.jpg', '.jpeg', '.webp'}
+
+          CATEGORY_CONFIG = {
+              'mod': {'preferred': 'Mods', 'alternate': 'mods'},
+              'texture-pack': {'preferred': 'TexturePacks', 'alternate': 'texturepacks'},
+              'weapon-addon': {'preferred': 'WeaponAddons', 'alternate': 'weaponaddons'},
+          }
+          CATEGORY_ORDER = ['mod', 'texture-pack', 'weapon-addon']
+
+          def choose_existing_dir(preferred: str, alternate: str) -> Path:
+              preferred_path = ROOT / preferred
+              alternate_path = ROOT / alternate
+
+              if preferred_path.exists() and alternate_path.exists():
+                  raise SystemExit(f"Both '{preferred}/' and '{alternate}/' exist. Keep only one casing.")
+              if preferred_path.exists():
+                  return preferred_path
+              if alternate_path.exists():
+                  return alternate_path
+              return preferred_path
+
+          def find_preview(entry_dir: Path):
+              candidates = [
+                  p for p in sorted(entry_dir.iterdir())
+                  if p.is_file() and p.suffix.lower() in PREVIEW_EXTS and p.stem.lower() == 'preview'
+              ]
+              return candidates[0] if candidates else None
+
+          def load_json(path: Path):
+              return json.loads(path.read_text(encoding='utf-8'))
+
+          roots = {
+              category: choose_existing_dir(cfg['preferred'], cfg['alternate'])
+              for category, cfg in CATEGORY_CONFIG.items()
+          }
+
+          entries = []
+          seen_slugs = set()
+          seen_names = set()
+
+          for category in CATEGORY_ORDER:
+              root = roots[category]
+              if not root.is_dir():
+                  continue
+
+              for entry_dir in sorted(root.iterdir(), key=lambda p: p.name.lower()):
+                  if not entry_dir.is_dir() or entry_dir.name.startswith('.') or entry_dir.name == '_template':
+                      continue
+
+                  mod_json_path = entry_dir / 'mod.json'
+                  if not mod_json_path.is_file():
+                      continue
+
+                  try:
+                      manifest = load_json(mod_json_path)
+                  except Exception as exc:
+                      raise SystemExit(f"Failed to parse {mod_json_path.as_posix()}: {exc}")
+
+                  if not isinstance(manifest, dict):
+                      raise SystemExit(f"{mod_json_path.as_posix()} must contain a JSON object.")
+
+                  manifest_category = str(manifest.get('category', '')).strip()
+                  if manifest_category != category:
+                      raise SystemExit(
+                          f"{mod_json_path.as_posix()} category should be '{category}', got '{manifest_category}'"
+                      )
+
+                  name = str(manifest.get('name', '')).strip()
+                  slug = str(manifest.get('slug', '')).strip()
+                  summary = str(manifest.get('summary', '')).strip()
+                  author = str(manifest.get('author', '')).strip() or 'Unknown'
+                  official = bool(manifest.get('official', False))
+                  source_repo = str(manifest.get('source_repo', '')).strip()
+                  releases_url = str(manifest.get('releases_url', '')).strip()
+                  game_version = str(manifest.get('game_version', '')).strip()
+                  castleforge_version = str(manifest.get('castleforge_version', '')).strip()
+                  license_name = str(manifest.get('license', '')).strip()
+                  tags = manifest.get('tags', []) if isinstance(manifest.get('tags', []), list) else []
+                  maintainers = manifest.get('maintainers', []) if isinstance(manifest.get('maintainers', []), list) else []
+                  dependencies = manifest.get('dependencies', []) if isinstance(manifest.get('dependencies', []), list) else []
+                  conflicts = manifest.get('conflicts', []) if isinstance(manifest.get('conflicts', []), list) else []
+
+                  readme_rel = str(manifest.get('readme_path', '')).replace('\\', '/').strip()
+                  preview_rel = str(manifest.get('preview_path', '')).replace('\\', '/').strip()
+
+                  if not readme_rel:
+                      readme_rel = f"{root.name}/{entry_dir.name}/README.md"
+                  if not preview_rel:
+                      preview_file = find_preview(entry_dir)
+                      preview_rel = f"{root.name}/{entry_dir.name}/{preview_file.name}" if preview_file else ''
+
+                  if not name or not slug:
+                      raise SystemExit(f"{mod_json_path.as_posix()} is missing required fields: name and/or slug")
+                  if slug in seen_slugs:
+                      raise SystemExit(f"Duplicate slug detected: {slug}")
+                  if name in seen_names:
+                      raise SystemExit(f"Duplicate name detected: {name}")
+
+                  seen_slugs.add(slug)
+                  seen_names.add(name)
+
+                  entry = {
+                      'name': name,
+                      'slug': slug,
+                      'category': category,
+                      'author': author,
+                      'summary': summary,
+                      'readme_path': readme_rel,
+                      'preview_path': preview_rel,
+                      'official': official,
+                  }
+
+                  optional_fields = {
+                      'source_repo': source_repo,
+                      'releases_url': releases_url,
+                      'game_version': game_version,
+                      'castleforge_version': castleforge_version,
+                      'license': license_name,
+                      'tags': [str(t) for t in tags],
+                      'maintainers': [str(x) for x in maintainers],
+                      'dependencies': [str(x) for x in dependencies],
+                      'conflicts': [str(x) for x in conflicts],
+                  }
+
+                  for key, value in optional_fields.items():
+                      if value not in ('', [], None):
+                          entry[key] = value
+
+                  entries.append(entry)
+
+          entries.sort(key=lambda x: (CATEGORY_ORDER.index(x['category']), x['name'].lower()))
+
+          INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
+          INDEX_PATH.write_text(json.dumps(entries, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+          print(f"Wrote {INDEX_PATH.as_posix()} with {len(entries)} entries.")
+          PY
+
+      - name: Commit updated index
+        shell: bash
+        run: |
+          if git diff --quiet -- Index/mods.json; then
+            echo "Index/mods.json is already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Index/mods.json
+          git commit -m "Build Index/mods.json"
+          git push
