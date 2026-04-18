@@ -2,63 +2,104 @@
 
 ![CastleForge Preview](Assets/Branding/Preview.png)
 
-This repository is the **community catalog / hub** for third-party CastleForge content.
+This repository is the **community catalog** for third-party CastleForge content.
 
-It supports three community content types:
+It supports three content types:
 
 - **Mods**
 - **Texture Packs**
 - **Weapon Addons**
 
-It is intentionally separate from the main CastleForge repository so the core platform and official projects can stay stable, focused, and easy to maintain.
+This repository is meant to be **easy to contribute to**.
+If you made something for CastleForge and want people to discover it, you can open a pull request and add it here.
 
-## Browse Community Content Online
+---
 
-Just here to browse?
+## Browse community content online
 
-Visit the live **CastleForge Community Browser**:
+Want to look through community content instead of submitting something?
 
 ➡️ **[Open the Browser](https://russdev7.github.io/CastleForge-CommunityMods/)**
 
-The browser is the easiest way to:
+Use the website to:
 
 - preview community entries
-- open each entry’s README
+- open each entry's README
 - jump to source repositories
-- find release / download links
+- find release/download links
 - filter by content type
 
-> Use this GitHub repository if you want to **submit**, **edit**, or **maintain** catalog entries.  
-> Use the website if you just want to **browse** community content.
+Use this GitHub repository when you want to:
+
+- submit a new community entry
+- update your existing entry
+- fix entry information
+- improve documentation or previews
+
+---
 
 ## What belongs here
 
-This repository is a good home for:
+This repository is for **catalog entries**, not for storing every full project.
 
-- third-party CastleForge mods
-- community texture packs
-- community weapon addons
-- preview images / GIFs
-- metadata / manifests
-- links to source repositories and releases
-- compatibility notes
+A normal entry includes:
 
-## Recommended model
+- a small manifest file (`mod.json`)
+- a README
+- a preview image or GIF
+- links to the real project, release page, or download page
 
-The best long-term model is:
+In most cases, creators should keep the full mod or content pack in their **own repository** and use this repo as the public catalog listing.
 
-- each creator keeps their project in its **own repository**
-- this repository stores the **catalog entry** for discovery
-- each entry links to:
-  - source repo
-  - releases
-  - documentation
-  - preview images
-  - compatibility metadata
+---
 
-That keeps ownership clear and avoids turning this repository into one giant source monorepo for unrelated community projects.
+## Quick start: how to submit something
+
+If you are new, this is the simple version:
+
+1. **Fork** this repository.
+2. Pick the correct folder:
+   - `Mods/`
+   - `TexturePacks/`
+   - `WeaponAddons/`
+3. Copy that category's `_template/` folder.
+4. Rename it to your project name.
+5. Fill in your files.
+6. Open a **pull request**.
+
+That is the basic flow.
+
+You do **not** need to add your project to a separate manual index.
+Each entry lives in its own folder.
+
+---
+
+## Which folder do I use?
+
+Choose **one** category only:
+
+### Use `Mods/` if your project:
+
+- adds gameplay features
+- changes logic or behavior
+- adds systems, tools, commands, UI, or game functionality
+
+### Use `TexturePacks/` if your project:
+
+- replaces or enhances textures
+- is mainly visual/art-focused
+- does not primarily add gameplay systems
+
+### Use `WeaponAddons/` if your project:
+
+- adds new weapons or weapon-focused content
+- expands weapon behavior, weapon sets, or weapon content packs
+
+---
 
 ## Folder layout
+
+Each submission should be added as a **new folder** inside the correct category.
 
 ```text
 CastleForge-CommunityMods/
@@ -67,101 +108,200 @@ CastleForge-CommunityMods/
 │
 ├─ Mods/
 │  ├─ _template/
-│  └─ ExampleCommunityMod/
+│  └─ MyCoolMod/
 │     ├─ mod.json
 │     ├─ README.md
 │     └─ preview.png
 │
 ├─ TexturePacks/
-│  └─ _template/
+│  ├─ _template/
+│  └─ MyTexturePack/
+│     ├─ mod.json
+│     ├─ README.md
+│     └─ preview.png
 │
-├─ WeaponAddons/
-│  └─ _template/
-│
-└─ Index/
-   └─ mods.json
+└─ WeaponAddons/
+   ├─ _template/
+   └─ MyWeaponAddon/
+      ├─ mod.json
+      ├─ README.md
+      └─ preview.png
 ```
 
-## Entry manifest shape
+---
 
-Each entry folder uses the same `mod.json` manifest for consistency, even when the entry is a texture pack or a weapon addon.
+## Files each entry should include
 
-The required differentiator is:
+Every entry should include these files:
+
+### `mod.json`
+Your metadata file.
+This is what the catalog uses to understand your entry.
+
+### `README.md`
+Your project page.
+Use it to explain what your project is, what it does, how to install it, and where to download it.
+
+### `preview.png` or `preview.gif`
+Your preview image.
+This helps people quickly understand what your project looks like.
+
+---
+
+## Required category value in `mod.json`
+
+Every entry uses the same `mod.json` format.
+The important part is the `category` value.
+
+Use one of these:
 
 - `"category": "mod"`
 - `"category": "texture-pack"`
 - `"category": "weapon-addon"`
 
-That keeps the workflow, validation, and site generation simple while still supporting multiple content families.
-
-## Promotion path
-
-A community entry can later be promoted into the main CastleForge repository if it becomes:
-
-- actively maintained
-- widely used
-- well documented
-- something the CastleForge maintainers want to officially support
-
-## Main CastleForge repo relationship
-
-The main **[CastleForge](https://github.com/RussDev7/CastleForge)** repository is the home of the official CastleForge ecosystem.
-
-Its root README already treats **TexturePacks** and **WeaponAddons** as first-class content systems, alongside the broader modding/tooling ecosystem, so expanding the community catalog to include them is aligned with the main project direction.
-
-### In simple terms
-
-- **CastleForge** = official platform + officially maintained projects
-- **CastleForge-CommunityMods** = third-party community catalog
-
-### Why they are separated
-
-Keeping the repositories separate helps:
-
-- keep the main CastleForge repo clean and focused
-- make official support boundaries clearer
-- avoid mixing unrelated third-party source projects into the core platform
-- make community submissions easier to review and organize
-- allow community content to grow without bloating the main CastleForge solution
-
-### Support expectations
-
-In general:
-
-- projects in the main **CastleForge** repository are part of the official ecosystem
-- entries listed in **CastleForge-CommunityMods** may be community-maintained and may have different update schedules, support levels, or compatibility guarantees
-
-Each catalog entry should make ownership, source links, release links, and compatibility notes as clear as possible.
-
-## Should you add an example texture pack or weapon addon?
-
-Yes, but only in the right way.
-
-**Recommended:**
-
-- keep `_template/` folders for each category
-- keep educational sample archives in docs/examples if they help authors learn the format
-- add real browser/catalog entries only when they point to an actual public repo and release page
-
-That means public projects like **Minecraft Pack** and **MCDiamondSword** are good fits for real catalog entries once they have a public repository, a clear README, and a stable place to download them from.
+That tells the catalog where your entry belongs.
 
 ---
 
-## Still need help?
+## What your entry should explain
 
-If you need help with the community catalog, submission process, or a listed entry, you can reach out here:
+Your entry should make it easy for a new user to understand:
+
+- **what it is**
+- **who made it**
+- **what version it works with**
+- **where to download it**
+- **where the source repo is**
+- **how to install it**
+- **what screenshots or preview media show it off**
+
+A strong entry usually includes:
+
+- project name
+- author or maintainer
+- short description
+- CastleForge compatibility
+- game compatibility
+- source repository link
+- release or download link
+- license
+- preview image or GIF
+
+---
+
+## Simple pull request guide
+
+If you have never opened a PR before, use this flow:
+
+### 1) Fork the repository
+Click **Fork** at the top of this GitHub repository.
+
+### 2) Create your entry folder
+Inside your fork, add a new folder in the correct category.
+
+Examples:
+
+- `Mods/MyCoolMod/`
+- `TexturePacks/MyTexturePack/`
+- `WeaponAddons/MyWeaponAddon/`
+
+### 3) Copy the template
+Copy the `_template/` folder from the category you are using, then rename it to your project name.
+
+### 4) Edit the files
+Update:
+
+- `mod.json`
+- `README.md`
+- `preview.png` or `preview.gif`
+
+### 5) Commit your changes
+Use a clear commit message, such as:
+
+- `Add MyCoolMod community entry`
+- `Add MyTexturePack catalog listing`
+- `Add MyWeaponAddon entry`
+
+### 6) Open a pull request
+Submit your PR back to this repository.
+
+A good PR title looks like:
+
+- `Add MyCoolMod community entry`
+- `Add MyTexturePack texture pack entry`
+- `Add MyWeaponAddon weapon addon entry`
+
+### 7) Wait for review
+A maintainer can then review it, request changes if needed, and merge it.
+
+---
+
+## Tips for a clean submission
+
+To help your PR get accepted faster:
+
+- keep the folder name clean and readable
+- make sure links work
+- make sure the README is easy to understand
+- include a preview image or GIF
+- make sure your `category` value is correct
+- do not submit broken, malicious, or intentionally harmful content
+- do not put your entry in more than one category
+
+---
+
+## Example beginner checklist
+
+Before opening your PR, quickly check:
+
+- [ ] I used the correct category folder
+- [ ] I copied the `_template/` folder
+- [ ] I renamed the folder to my project name
+- [ ] I filled out `mod.json`
+- [ ] I updated `README.md`
+- [ ] I added `preview.png` or `preview.gif`
+- [ ] My links work
+- [ ] My `category` value matches the folder type
+
+---
+
+## What happens after a PR is merged?
+
+Once accepted, your entry becomes part of the community catalog.
+It can then appear in the community browser and help other people discover your project.
+
+Being listed here does **not** automatically mean the project is officially supported by the main CastleForge maintainers.
+Community entries may be maintained by independent creators.
+
+---
+
+## Relationship to the main CastleForge repo
+
+The main **[CastleForge](https://github.com/RussDev7/CastleForge)** repository is the home of the official CastleForge ecosystem.
+
+This repository is different:
+
+- **CastleForge** = official platform and official projects
+- **CastleForge-CommunityMods** = community catalog for third-party content
+
+This separation keeps the official repo cleaner and makes community submissions easier to organize.
+
+---
+
+## Need help?
+
+If you need help with the catalog or submission process:
 
 - **DM me on Discord:** [dannyruss](https://discordapp.com/users/364835156587970580) (_RussDev7)
 - **Join the CastleForge Discord server:** [Discord Server](https://discord.gg/j3PcNJmry5)
 
-> For support with a specific community project, please also check that project's own README, repository, and release page first.
-> Community-listed projects may be maintained by independent creators and can have different support levels.
+If your question is about a specific community project, check that project's own README, repository, and release page first.
 
 ---
 
 ## Support CastleForge
 
-Want to support the core CastleForge project that powers the official ecosystem?
+Want to support the main CastleForge project?
 
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://buymeacoffee.com/castleforge)
 

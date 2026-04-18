@@ -10,8 +10,6 @@ on:
       - 'texturepacks/**'
       - 'WeaponAddons/**'
       - 'weaponaddons/**'
-      - 'Index/**'
-      - 'index/**'
       - 'Assets/**'
       - 'assets/**'
       - 'README.md'
@@ -45,12 +43,14 @@ jobs:
           python <<'PY'
           import html
           import json
-          import shutil
           import os
+          import shutil
+          import sys
           from pathlib import Path
 
           ROOT = Path('.')
           SITE = ROOT / '_site'
+          PREVIEW_EXTS = {'.png', '.gif', '.jpg', '.jpeg', '.webp'}
 
           REPO = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
           REF = os.environ.get('GITHUB_REF_NAME', 'main')
@@ -75,26 +75,26 @@ jobs:
                   return alternate_path
               return preferred_path
 
-          INDEX_DIR = choose_existing_dir('Index', 'index')
-          ASSETS_DIR = choose_existing_dir('Assets', 'assets')
-          INDEX = INDEX_DIR / 'mods.json'
+          def find_preview(entry_dir: Path):
+              candidates = [
+                  p for p in sorted(entry_dir.iterdir())
+                  if p.is_file() and p.suffix.lower() in PREVIEW_EXTS and p.stem.lower() == 'preview'
+              ]
+              return candidates[0] if candidates else None
+
+          def load_json(path: Path):
+              return json.loads(path.read_text(encoding='utf-8'))
 
           roots = {key: choose_existing_dir(cfg['preferred'], cfg['alternate']) for key, cfg in CATEGORY_CONFIG.items()}
+          ASSETS_DIR = choose_existing_dir('Assets', 'assets')
 
           if SITE.exists():
               shutil.rmtree(SITE)
           SITE.mkdir(parents=True, exist_ok=True)
 
-          entries = []
-          if INDEX.is_file():
-              entries = json.loads(INDEX.read_text(encoding='utf-8'))
-
           for path in roots.values():
               if path.exists():
                   shutil.copytree(path, SITE / path.name, dirs_exist_ok=True)
-
-          if INDEX_DIR.exists():
-              shutil.copytree(INDEX_DIR, SITE / INDEX_DIR.name, dirs_exist_ok=True)
 
           if ASSETS_DIR.exists():
               shutil.copytree(ASSETS_DIR, SITE / ASSETS_DIR.name, dirs_exist_ok=True)
@@ -110,88 +110,116 @@ jobs:
                   brand_src = site_path
                   break
 
-          cards = []
+          entries = []
           counts = {key: 0 for key in CATEGORY_CONFIG}
 
-          def category_rank(value: str) -> int:
-              try:
-                  return CATEGORY_ORDER.index(value)
-              except ValueError:
-                  return len(CATEGORY_ORDER)
-
-          def get_manifest(entry: dict):
-              readme_path = str(entry.get('readme_path', '')).replace('\\', '/').strip()
-              if not readme_path:
-                  return {}
-
-              readme_file = ROOT / readme_path
-              manifest_path = readme_file.parent / 'mod.json'
-
-              if not manifest_path.is_file():
-                  return {}
-
-              try:
-                  return json.loads(manifest_path.read_text(encoding='utf-8'))
-              except Exception:
-                  return {}
-
-          for entry in sorted(entries, key=lambda x: (category_rank(str(x.get('category', 'mod'))), str(x.get('name', '')).lower())):
-              if not isinstance(entry, dict):
+          for category in CATEGORY_ORDER:
+              root = roots[category]
+              if not root.is_dir():
                   continue
 
-              name = str(entry.get('name', '')).strip()
-              slug = str(entry.get('slug', '')).strip()
-              category = str(entry.get('category', 'mod')).strip()
-              if not name or not slug or category not in CATEGORY_CONFIG:
-                  continue
+              for entry_dir in sorted(root.iterdir(), key=lambda p: p.name.lower()):
+                  if not entry_dir.is_dir() or entry_dir.name.startswith('.') or entry_dir.name == '_template':
+                      continue
 
-              counts[category] += 1
-              category_label = CATEGORY_CONFIG[category]['label']
-              manifest = get_manifest(entry)
+                  mod_json_path = entry_dir / 'mod.json'
+                  if not mod_json_path.is_file():
+                      continue
 
-              summary = str(manifest.get('summary', entry.get('summary', ''))).strip()
-              preview_path = str(entry.get('preview_path', '')).replace('\\', '/').strip()
-              readme_path = str(entry.get('readme_path', '')).replace('\\', '/').strip()
-              official = bool(entry.get('official', False))
-              author = str(manifest.get('author', entry.get('author', 'Unknown'))).strip() or 'Unknown'
-              source_repo = str(manifest.get('source_repo', '')).strip()
-              releases_url = str(manifest.get('releases_url', '')).strip()
-              tags = manifest.get('tags', []) if isinstance(manifest.get('tags', []), list) else []
-              tags_html = ''.join(f'<span class="tag">{html.escape(str(t))}</span>' for t in tags)
-              blob_readme_url = f"{REPO}/blob/{REF}/{readme_path}" if readme_path else REPO
+                  try:
+                      manifest = load_json(mod_json_path)
+                  except Exception as exc:
+                      raise SystemExit(f"Failed to parse {mod_json_path.as_posix()}: {exc}")
 
+                  if not isinstance(manifest, dict):
+                      raise SystemExit(f"{mod_json_path.as_posix()} must contain a JSON object.")
+
+                  manifest_category = str(manifest.get('category', '')).strip()
+                  if manifest_category != category:
+                      raise SystemExit(
+                          f"{mod_json_path.as_posix()} category should be '{category}', got '{manifest_category}'"
+                      )
+
+                  name = str(manifest.get('name', '')).strip()
+                  slug = str(manifest.get('slug', '')).strip()
+                  summary = str(manifest.get('summary', '')).strip()
+                  author = str(manifest.get('author', '')).strip() or 'Unknown'
+                  official = bool(manifest.get('official', False))
+                  source_repo = str(manifest.get('source_repo', '')).strip()
+                  releases_url = str(manifest.get('releases_url', '')).strip()
+                  tags = manifest.get('tags', []) if isinstance(manifest.get('tags', []), list) else []
+
+                  readme_rel = str(manifest.get('readme_path', '')).replace('\\', '/').strip()
+                  preview_rel = str(manifest.get('preview_path', '')).replace('\\', '/').strip()
+
+                  if not readme_rel:
+                      readme_rel = f"{root.name}/{entry_dir.name}/README.md"
+                  if not preview_rel:
+                      preview_file = find_preview(entry_dir)
+                      preview_rel = f"{root.name}/{entry_dir.name}/{preview_file.name}" if preview_file else ''
+
+                  if not name or not slug:
+                      raise SystemExit(f"{mod_json_path.as_posix()} is missing a required display field (name or slug).")
+
+                  counts[category] += 1
+                  entries.append({
+                      'category': category,
+                      'category_label': CATEGORY_CONFIG[category]['label'],
+                      'name': name,
+                      'slug': slug,
+                      'summary': summary,
+                      'author': author,
+                      'official': official,
+                      'source_repo': source_repo,
+                      'releases_url': releases_url,
+                      'readme_path': readme_rel,
+                      'preview_path': preview_rel,
+                      'tags': [str(t) for t in tags],
+                  })
+
+          entries.sort(key=lambda x: (CATEGORY_ORDER.index(x['category']), x['name'].lower()))
+
+          cards = []
+          for entry in entries:
+              tags_html = ''.join(f'<span class="tag">{html.escape(tag)}</span>' for tag in entry['tags'])
+              blob_readme_url = f"{REPO}/blob/{REF}/{entry['readme_path']}" if entry['readme_path'] else REPO
+              preview_html = (
+                  f'<img src="{html.escape(entry["preview_path"])}" alt="{html.escape(entry["name"])} preview" loading="lazy">'
+                  if entry['preview_path'] else
+                  '<div class="missing-preview">No preview provided</div>'
+              )
               cards.append(f"""
-              <article class="card" data-category="{html.escape(category)}">
-                <div class="media"> 
-                  <img src="{html.escape(preview_path)}" alt="{html.escape(name)} preview" loading="lazy"> 
+              <article class="card" data-category="{html.escape(entry['category'])}">
+                <div class="media">
+                  {preview_html}
                 </div>
-                <div class="content"> 
-                  <div class="heading"> 
-                    <h2>{html.escape(name)}</h2>
-                    <span class="badge type">{html.escape(category_label)}</span>
-                    <span class="badge {'official' if official else 'community'}">{'Official' if official else 'Community'}</span>
+                <div class="content">
+                  <div class="heading">
+                    <h2>{html.escape(entry['name'])}</h2>
+                    <span class="badge type">{html.escape(entry['category_label'])}</span>
+                    <span class="badge {'official' if entry['official'] else 'community'}">{'Official' if entry['official'] else 'Community'}</span>
                   </div>
-                  <p class="author">By {html.escape(author)}</p>
-                  <p>{html.escape(summary)}</p>
+                  <p class="author">By {html.escape(entry['author'])}</p>
+                  <p>{html.escape(entry['summary'])}</p>
                   <div class="tags">{tags_html}</div>
-                  <div class="links"> 
+                  <div class="links">
                     <a href="{html.escape(blob_readme_url)}">README</a>
-                    {f'<a href="{html.escape(source_repo)}">Source</a>' if source_repo else ''}
-                    {f'<a href="{html.escape(releases_url)}">Releases</a>' if releases_url else ''}
+                    {f'<a href="{html.escape(entry["source_repo"])}">Source</a>' if entry['source_repo'] else ''}
+                    {f'<a href="{html.escape(entry["releases_url"])}">Releases</a>' if entry['releases_url'] else ''}
                   </div>
                 </div>
               </article>
               """)
 
-          body = "\n".join(cards) if cards else '<p class="empty">No community content has been published yet. Submit the first entry!</p>'
-          brand_html = f'<img class="brand" src="{html.escape(brand_src)}" alt="CastleForge Community Catalog">' if brand_src else ''
-
           total = sum(counts.values())
-          filter_buttons = ['<button class="filter active" data-filter="all">All <span>{}</span></button>'.format(total)]
+          filter_buttons = [f'<button class="filter active" data-filter="all">All <span>{total}</span></button>']
           for key in CATEGORY_ORDER:
-              label = CATEGORY_CONFIG[key]['label'] + ('s' if not CATEGORY_CONFIG[key]['label'].endswith('k') else 's')
+              label = CATEGORY_CONFIG[key]['label'] + 's'
               filter_buttons.append(f'<button class="filter" data-filter="{key}">{html.escape(label)} <span>{counts[key]}</span></button>')
           filter_html = ''.join(filter_buttons)
+
+          body = '\n'.join(cards) if cards else '<p class="empty">No community content has been published yet. Submit the first entry!</p>'
+          brand_html = f'<img class="brand" src="{html.escape(brand_src)}" alt="CastleForge Community Catalog">' if brand_src else ''
 
           html_text = f"""<!doctype html>
           <html lang="en">
@@ -205,7 +233,7 @@ jobs:
               body {{ margin:0; font-family:Segoe UI, Arial, sans-serif; background:linear-gradient(180deg,#0b1020,#11182a); color:var(--text); }}
               .wrap {{ max-width:1200px; margin:0 auto; padding:40px 20px 64px; }}
               header {{ margin-bottom:24px; }}
-              .brand {{ width: min(100%, 760px); height: auto; margin: 0 0 18px; display: block; }}
+              .brand {{ width:min(100%, 760px); height:auto; margin:0 0 18px; display:block; }}
               h1 {{ margin:0 0 10px; font-size:clamp(2rem,4vw,3rem); }}
               p.lead {{ color:var(--muted); max-width:850px; line-height:1.6; }}
               .toplinks {{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }}
@@ -217,8 +245,9 @@ jobs:
               .grid {{ display:grid; gap:18px; }}
               .card {{ display:grid; grid-template-columns:minmax(240px,320px) 1fr; gap:18px; align-items:stretch; background:rgba(20,27,45,.88); border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.2); }}
               .card.hidden {{ display:none; }}
-              .media {{ background:var(--panel-2); min-height:180px; height:100%; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:12px; }}
+              .media {{ background:#09101d; min-height:220px; display:flex; align-items:center; justify-content:center; padding:18px; }}
               .media img {{ width:100%; height:100%; object-fit:contain; object-position:center; display:block; }}
+              .missing-preview {{ color:var(--muted); text-align:center; }}
               .content {{ padding:20px; }}
               .heading {{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }}
               .heading h2 {{ margin:0; font-size:1.5rem; }}
@@ -251,7 +280,7 @@ jobs:
               <section class="grid" id="catalog">{body}</section>
 
               <footer>
-                Generated from the CastleForge-CommunityMods repository using GitHub Pages.
+                Generated directly from entry manifests in the CastleForge-CommunityMods repository.
               </footer>
             </div>
 
