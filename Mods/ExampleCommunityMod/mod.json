@@ -3,6 +3,9 @@
   "slug": "example-community-mod",
   "category": "mod",
   "author": "RussDev7",
+  "maintainers": [
+    "RussDev7"
+  ],
   "summary": "A sample third-party CastleForge mod entry that demonstrates how to structure a community submission with metadata, documentation, and preview media.",
   "game_version": "1.9.9.8",
   "castleforge_version": "0.1.0",
@@ -17,5 +20,9 @@
     "starter",
     "community"
   ],
+  "dependencies": [
+    "ModLoaderExtensions"
+  ],
+  "conflicts": [],
   "official": false
 }
