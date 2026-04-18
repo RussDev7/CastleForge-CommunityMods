@@ -12,7 +12,7 @@
     "releases_url": "https://github.com/RussDev7/CastleForge-ExampleCommunityMod/releases",
     "game_version": "1.9.9.8",
     "castleforge_version": "0.1.0",
-    "license": "MIT",
+    "license": "GPL-3.0-or-later",
     "tags": [
       "example",
       "template",
