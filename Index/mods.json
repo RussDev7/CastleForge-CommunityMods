@@ -18,6 +18,12 @@
       "template",
       "starter",
       "community"
+    ],
+    "maintainers": [
+      "RussDev7"
+    ],
+    "dependencies": [
+      "ModLoaderExtensions"
     ]
   },
   {
@@ -32,7 +38,7 @@
     "source_repo": "https://github.com/RussDev7/CastleForge-Minecraft-TexturePack",
     "releases_url": "https://github.com/RussDev7/CastleForge-Minecraft-TexturePack/releases",
     "game_version": "v1.9.9.8",
-    "castleforge_version": "TexturePacks",
+    "castleforge_version": "0.1.0",
     "license": "See source repository",
     "tags": [
       "minecraft",
@@ -44,6 +50,7 @@
       "RussDev7"
     ],
     "dependencies": [
+      "ModLoaderExtensions",
       "TexturePacks"
     ]
   },
@@ -59,7 +66,7 @@
     "source_repo": "https://github.com/RussDev7/CastleForge-Minecraft-DiamondSword-Addon",
     "releases_url": "https://github.com/RussDev7/CastleForge-Minecraft-DiamondSword-Addon/releases",
     "game_version": "v1.9.9.8",
-    "castleforge_version": "WeaponAddons",
+    "castleforge_version": "0.1.0",
     "license": "See source repository",
     "tags": [
       "minecraft",
@@ -71,6 +78,7 @@
       "RussDev7"
     ],
     "dependencies": [
+      "ModLoaderExtensions",
       "WeaponAddons"
     ]
   }
