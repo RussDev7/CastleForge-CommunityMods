@@ -31,7 +31,7 @@
     "official": false,
     "source_repo": "https://github.com/RussDev7/CastleForge-Minecraft-TexturePack",
     "releases_url": "https://github.com/RussDev7/CastleForge-Minecraft-TexturePack/releases",
-    "game_version": "v1.9.9.8.5 Steam",
+    "game_version": "v1.9.9.8",
     "castleforge_version": "TexturePacks",
     "license": "See source repository",
     "tags": [
@@ -58,7 +58,7 @@
     "official": false,
     "source_repo": "https://github.com/RussDev7/CastleForge-Minecraft-DiamondSword-Addon",
     "releases_url": "https://github.com/RussDev7/CastleForge-Minecraft-DiamondSword-Addon/releases",
-    "game_version": "v1.9.9.8.5 Steam",
+    "game_version": "v1.9.9.8",
     "castleforge_version": "WeaponAddons",
     "license": "See source repository",
     "tags": [
