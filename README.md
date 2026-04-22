@@ -64,7 +64,10 @@ If you are new, this is the simple version:
    - `WeaponAddons/`
 3. Copy that category's `_template/` folder.
 4. Rename it to your project name.
-5. Fill in your files.
+5. Fill in your required files:
+   - mod.json
+   - README.md
+   - preview.png or preview.gif
 6. Open a **pull request**.
 
 That is the basic flow.
