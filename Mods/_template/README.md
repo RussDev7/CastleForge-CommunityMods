@@ -12,4 +12,4 @@ This folder is a starter template for a community **mod** entry in the CastleFor
 
 - Keep the full source/content in its own repository when possible.
 - Use this repository as the shared discovery catalog.
-- Set `category` in `mod.json` to `texture-pack`.
+- Set `category` in `mod.json` to `mod`.
