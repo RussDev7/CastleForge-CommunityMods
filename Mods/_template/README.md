@@ -1,33 +1,15 @@
-# ExampleCommunityMod
+# ExampleMod
 
-![Preview](./preview.png)
+This folder is a starter template for a community **mod** entry in the CastleForge community catalog.
 
-> Short hook sentence that tells people why they should care.
+## Required files
 
-## What it does
+- `mod.json`
+- `README.md`
+- `preview.png` or `preview.gif`
 
-Describe the mod in plain English.
+## Notes
 
-## Features
-
-- Feature one
-- Feature two
-- Feature three
-
-## Compatibility
-
-- CastleMiner Z:
-- CastleForge:
-- Dependencies:
-- Known conflicts:
-
-## Installation
-
-1. Download the release.
-2. Copy the DLL and any required files into `!Mods`.
-3. Launch the game.
-
-## Source / releases
-
-- Source:
-- Releases:
+- Keep the full source/content in its own repository when possible.
+- Use this repository as the shared discovery catalog.
+- Set `category` in `mod.json` to `texture-pack`.
