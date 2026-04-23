@@ -21,6 +21,7 @@ Supported roots:
 - `Mods/`
 - `TexturePacks/`
 - `WeaponAddons/`
+- `WorldGen/`
 
 It ignores `_template` folders so you can keep starter scaffolding in the repo.
 
@@ -42,4 +43,4 @@ Builds a lightweight static catalog site, supports category filtering, and deplo
 3. Make sure GitHub Actions is enabled for the repository.
 4. Merge the workflow files into your default branch.
 
-After that, pushes to `main` or `master` that touch `Mods/`, `TexturePacks/`, `WeaponAddons/`, `Index/`, or the relevant docs will rebuild the site.
+After that, pushes to `main` or `master` that touch `Mods/`, `TexturePacks/`, `WeaponAddons/`, `WorldGen/`, `Index/`, or the relevant docs will rebuild the site.

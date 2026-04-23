@@ -7,6 +7,7 @@ This repository is for **community listings** for:
 - **Mods**
 - **Texture Packs**
 - **Weapon Addons**
+- **World Gen**
 
 You do **not** need to edit a separate index file.
 Just add your project as a new folder in the correct category.
@@ -22,6 +23,7 @@ If you only want the fast version, do this:
    - `Mods/`
    - `TexturePacks/`
    - `WeaponAddons/`
+   - `WorldGen/`
 3. Copy that folder's `_template/`.
 4. Rename it to your project name.
 5. Fill out `mod.json`, `README.md`, and your preview image.
@@ -61,6 +63,15 @@ Use this for projects that mainly add or expand:
 - weapon-focused content
 - weapon behavior or weapon content sets
 
+### `WorldGen/`
+Use this for projects that mainly add or change:
+
+- custom terrain generation
+- biome generation
+- world presets
+- mountain / cave / terrain overhauls
+- procedural world layout systems
+
 Do **not** submit the same entry in multiple folders.
 
 ---
@@ -88,9 +99,16 @@ CastleForge-CommunityMods/
 │     ├─ README.md
 │     └─ preview.png
 │
-└─ WeaponAddons/
+├─ WeaponAddons/
+│  ├─ _template/
+│  └─ MyWeaponAddon/
+│     ├─ mod.json
+│     ├─ README.md
+│     └─ preview.png
+│
+└─ WorldGen/
    ├─ _template/
-   └─ MyWeaponAddon/
+   └─ MyWorldGen/
       ├─ mod.json
       ├─ README.md
       └─ preview.png
@@ -135,6 +153,11 @@ Your `mod.json` must use the correct category value for the folder you chose.
 "category": "weapon-addon"
 ```
 
+### If your entry is in `WorldGen/`
+```json
+"category": "world-gen"
+```
+
 Make sure the folder and the `category` value match.
 
 ---
@@ -171,6 +194,7 @@ Examples:
 - `Mods/MyCoolMod/`
 - `TexturePacks/MyTexturePack/`
 - `WeaponAddons/MyWeaponAddon/`
+- `WorldGen/MyWorldGen/`
 
 ### 3) Copy the template
 Copy the `_template/` folder from the category you are using.
@@ -191,6 +215,7 @@ Examples:
 - `Add MyCoolMod community entry`
 - `Add MyTexturePack texture pack entry`
 - `Add MyWeaponAddon weapon addon entry`
+- `Add MyWorldGen biome entry`
 
 ### 6) Open a pull request
 Submit your branch as a PR to this repository.
@@ -200,6 +225,7 @@ Good PR title examples:
 - `Add MyCoolMod community entry`
 - `Add MyTexturePack texture pack entry`
 - `Add MyWeaponAddon weapon addon entry`
+- `Add MyWorldGen biome entry`
 
 ### 7) Respond to review if needed
 A maintainer may ask for small fixes before merging.

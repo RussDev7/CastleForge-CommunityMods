@@ -1,0 +1,30 @@
+{
+  "name": "Terralith Inspired Biomes",
+  "slug": "terralith-inspired-biomes",
+  "category": "world-gen",
+  "author": "RussDev7",
+  "maintainers": [
+    "RussDev7"
+  ],
+  "summary": "A community Terralith-inspired world generation project for CastleForge that focuses on dramatic mountains, cliffs, valleys, and biome-driven terrain generation.",
+  "game_version": "v1.9.9.8",
+  "castleforge_version": "0.1.0",
+  "license": "See source repository",
+  "source_repo": "https://github.com/RussDev7/CastleForge-TerralithInspiredBiomes",
+  "releases_url": "https://github.com/RussDev7/CastleForge-TerralithInspiredBiomes/releases",
+  "readme_path": "WorldGen/TerralithInspiredBiomes/README.md",
+  "preview_path": "WorldGen/TerralithInspiredBiomes/preview.png",
+  "tags": [
+    "world-gen",
+    "terrain",
+    "biomes",
+    "mountains",
+    "community"
+  ],
+  "dependencies": [
+    "ModLoaderExtensions",
+    "WorldGenPlus"
+  ],
+  "conflicts": [],
+  "official": false
+}

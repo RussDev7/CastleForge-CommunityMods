@@ -10,6 +10,8 @@ on:
       - 'texturepacks/**'
       - 'WeaponAddons/**'
       - 'weaponaddons/**'
+      - 'WorldGen/**'
+      - 'worldgen/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/validate-catalog.yml'
@@ -21,6 +23,8 @@ on:
       - 'texturepacks/**'
       - 'WeaponAddons/**'
       - 'weaponaddons/**'
+      - 'WorldGen/**'
+      - 'worldgen/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/validate-catalog.yml'
@@ -57,6 +61,7 @@ jobs:
               'mod': {'preferred': 'Mods', 'alternate': 'mods', 'label': 'Mods'},
               'texture-pack': {'preferred': 'TexturePacks', 'alternate': 'texturepacks', 'label': 'TexturePacks'},
               'weapon-addon': {'preferred': 'WeaponAddons', 'alternate': 'weaponaddons', 'label': 'WeaponAddons'},
+              'world-gen': {'preferred': 'WorldGen', 'alternate': 'worldgen', 'label': 'World Gen'},
           }
 
           REQUIRED_KEYS = {

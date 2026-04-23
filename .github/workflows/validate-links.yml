@@ -10,6 +10,8 @@ on:
       - 'texturepacks/**'
       - 'WeaponAddons/**'
       - 'weaponaddons/**'
+      - 'WorldGen/**'
+      - 'worldgen/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/validate-links.yml'
@@ -21,6 +23,8 @@ on:
       - 'texturepacks/**'
       - 'WeaponAddons/**'
       - 'weaponaddons/**'
+      - 'WorldGen/**'
+      - 'worldgen/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/validate-links.yml'
@@ -62,6 +66,7 @@ jobs:
               ROOT / 'Mods', ROOT / 'mods',
               ROOT / 'TexturePacks', ROOT / 'texturepacks',
               ROOT / 'WeaponAddons', ROOT / 'weaponaddons',
+              ROOT / 'WorldGen', ROOT / 'worldgen',
           ]
 
           errors = []

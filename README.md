@@ -9,6 +9,7 @@ It supports three content types:
 - **Mods**
 - **Texture Packs**
 - **Weapon Addons**
+- **World Gen**
 
 This repository is meant to be **easy to contribute to**.
 If you made something for CastleForge and want people to discover it, you can open a pull request and add it here.
@@ -62,6 +63,7 @@ If you are new, this is the simple version:
    - `Mods/`
    - `TexturePacks/`
    - `WeaponAddons/`
+   - `WorldGen/`
 3. Copy that category's `_template/` folder.
 4. Rename it to your project name.
 5. Fill in your required files:
@@ -98,6 +100,13 @@ Choose **one** category only:
 - adds new weapons or weapon-focused content
 - expands weapon behavior, weapon sets, or weapon content packs
 
+### Use `WorldGen/` if your project:
+
+- adds or changes procedural world generation
+- creates custom terrain styles, biome regions, or generation presets
+- focuses on cliffs, mountains, valleys, caves, or large-scale terrain overhauls
+- is primarily a world creation or terrain-generation project
+
 ---
 
 ## Folder layout
@@ -123,9 +132,16 @@ CastleForge-CommunityMods/
 │     ├─ README.md
 │     └─ preview.png
 │
-└─ WeaponAddons/
+├─ WeaponAddons/
+│  ├─ _template/
+│  └─ MyWeaponAddon/
+│     ├─ mod.json
+│     ├─ README.md
+│     └─ preview.png
+│
+└─ WorldGen/
    ├─ _template/
-   └─ MyWeaponAddon/
+   └─ MyWorldGen/
       ├─ mod.json
       ├─ README.md
       └─ preview.png
@@ -161,6 +177,7 @@ Use one of these:
 - `"category": "mod"`
 - `"category": "texture-pack"`
 - `"category": "weapon-addon"`
+- `"category": "world-gen"`
 
 That tells the catalog where your entry belongs.
 
@@ -207,6 +224,7 @@ Examples:
 - `Mods/MyCoolMod/`
 - `TexturePacks/MyTexturePack/`
 - `WeaponAddons/MyWeaponAddon/`
+- `WorldGen/MyWorldGen/`
 
 ### 3) Copy the template
 Copy the `_template/` folder from the category you are using, then rename it to your project name.
@@ -222,8 +240,9 @@ Update:
 Use a clear commit message, such as:
 
 - `Add MyCoolMod community entry`
-- `Add MyTexturePack catalog listing`
-- `Add MyWeaponAddon entry`
+- `Add MyTexturePack texture pack entry`
+- `Add MyWeaponAddon weapon addon entry`
+- `Add MyWorldGen biome entry`
 
 ### 6) Open a pull request
 Submit your PR back to this repository.
@@ -233,6 +252,7 @@ A good PR title looks like:
 - `Add MyCoolMod community entry`
 - `Add MyTexturePack texture pack entry`
 - `Add MyWeaponAddon weapon addon entry`
+- `Add MyWorldGen biome entry`
 
 ### 7) Wait for review
 A maintainer can then review it, request changes if needed, and merge it.

@@ -12,6 +12,7 @@ body:
         - Mod
         - Texture Pack
         - Weapon Addon
+        - World Gen
     validations:
       required: true
 

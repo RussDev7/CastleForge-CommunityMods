@@ -10,6 +10,8 @@ on:
       - 'texturepacks/**'
       - 'WeaponAddons/**'
       - 'weaponaddons/**'
+      - 'WorldGen/**'
+      - 'worldgen/**'
       - '.github/workflows/build-index.yml'
   workflow_dispatch:
 
@@ -39,8 +41,9 @@ jobs:
               'mod': {'preferred': 'Mods', 'alternate': 'mods'},
               'texture-pack': {'preferred': 'TexturePacks', 'alternate': 'texturepacks'},
               'weapon-addon': {'preferred': 'WeaponAddons', 'alternate': 'weaponaddons'},
+              'world-gen': {'preferred': 'WorldGen', 'alternate': 'worldgen'},
           }
-          CATEGORY_ORDER = ['mod', 'texture-pack', 'weapon-addon']
+          CATEGORY_ORDER = ['mod', 'texture-pack', 'weapon-addon', 'world-gen']
 
           def choose_existing_dir(preferred: str, alternate: str) -> Path:
               preferred_path = ROOT / preferred

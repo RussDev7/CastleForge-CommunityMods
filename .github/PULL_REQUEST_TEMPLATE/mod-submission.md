@@ -7,6 +7,7 @@ Add or update a CastleForge community catalog entry.
 - [ ] Mod
 - [ ] Texture Pack
 - [ ] Weapon Addon
+- [ ] World Gen
 
 ## Included files
 
