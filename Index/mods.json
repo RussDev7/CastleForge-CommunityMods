@@ -107,7 +107,6 @@
       "RussDev7"
     ],
     "dependencies": [
-      "ModLoaderExtensions",
       "WorldGenPlus"
     ]
   }
