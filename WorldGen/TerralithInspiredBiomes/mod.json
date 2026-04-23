@@ -22,7 +22,6 @@
     "community"
   ],
   "dependencies": [
-    "ModLoaderExtensions",
     "WorldGenPlus"
   ],
   "conflicts": [],
