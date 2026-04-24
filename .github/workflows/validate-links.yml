@@ -12,9 +12,12 @@ on:
       - 'weaponaddons/**'
       - 'WorldGen/**'
       - 'worldgen/**'
+      - 'Index/**'
+      - 'index/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/validate-links.yml'
+
   pull_request:
     paths:
       - 'Mods/**'
@@ -25,9 +28,12 @@ on:
       - 'weaponaddons/**'
       - 'WorldGen/**'
       - 'worldgen/**'
+      - 'Index/**'
+      - 'index/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/validate-links.yml'
+
   workflow_dispatch:
 
 permissions:
@@ -46,6 +52,7 @@ jobs:
         run: |
           python <<'PY'
           import json
+          import os
           import re
           import sys
           import urllib.error
@@ -54,23 +61,50 @@ jobs:
           from pathlib import Path
 
           ROOT = Path('.')
-          PLACEHOLDER_NAMES = {'ExampleCommunityMod', 'ExampleTexturePack', 'ExampleWeaponAddon'}
-          PLACEHOLDER_SLUGS = {'example-community-mod', 'example-texture-pack', 'example-weapon-addon'}
-          URL_RE = re.compile(r"https?://[^\s)\]\"'>]+")
 
-          PRIVATE_URL_PREFIXES = (
+          PLACEHOLDER_NAMES = {
+              'ExampleCommunityMod',
+              'ExampleTexturePack',
+              'ExampleWeaponAddon',
+          }
+
+          PLACEHOLDER_SLUGS = {
+              'example-community-mod',
+              'example-texture-pack',
+              'example-weapon-addon',
+          }
+
+          # Stop URLs before common Markdown/code punctuation.
+          # The old version allowed a trailing backtick, which caused URLs like:
+          # https://raw.githubusercontent.com/.../mods.json`
+          URL_RE = re.compile(r"https?://[^\s`)\]\"'<>]+")
+
+          TRAILING_URL_PUNCTUATION = '`.,;:!?'
+
+          # Exact private repo prefixes only.
+          # This avoids accidentally treating CastleForge-CommunityMods as private
+          # just because it starts with "CastleForge".
+          PRIVATE_REPO_URL_PREFIXES = (
               'https://github.com/RussDev7/CastleForge',
+              'https://github.com/RussDev7/CastleForge-Minecraft-DiamondSword-Addon',
+              'https://github.com/RussDev7/CastleForge-Minecraft-TexturePack',
+              'https://github.com/RussDev7/CastleForge-TerralithInspiredBiomes',
           )
 
           CATEGORY_ROOTS = [
-              ROOT / 'Mods', ROOT / 'mods',
-              ROOT / 'TexturePacks', ROOT / 'texturepacks',
-              ROOT / 'WeaponAddons', ROOT / 'weaponaddons',
-              ROOT / 'WorldGen', ROOT / 'worldgen',
+              ROOT / 'Mods',
+              ROOT / 'mods',
+              ROOT / 'TexturePacks',
+              ROOT / 'texturepacks',
+              ROOT / 'WeaponAddons',
+              ROOT / 'weaponaddons',
+              ROOT / 'WorldGen',
+              ROOT / 'worldgen',
           ]
 
           errors = []
           warnings = []
+          urls = {}
 
           def add_error(message: str) -> None:
               errors.append(message)
@@ -80,87 +114,212 @@ jobs:
               warnings.append(message)
               print(f"::warning::{message}")
 
+          def clean_url(url: str) -> str:
+              """
+              Cleans URL matches collected from Markdown.
+
+              Important:
+              - Removes trailing Markdown backticks.
+              - Removes common sentence punctuation.
+              - Removes URL fragments for checking, since fragments are not sent
+                to the server anyway.
+              """
+              cleaned = url.strip().strip('<>').rstrip(TRAILING_URL_PUNCTUATION)
+              cleaned, _fragment = urllib.parse.urldefrag(cleaned)
+              return cleaned
+
           def normalize_url(url: str) -> str:
-              return url.rstrip('/')
+              return clean_url(url).rstrip('/')
+
+          def private_prefix_matches(url: str, prefix: str) -> bool:
+              """
+              Match only the exact repo URL or paths under that repo.
+
+              Good:
+                https://github.com/RussDev7/CastleForge
+                https://github.com/RussDev7/CastleForge/releases
+
+              Not matched:
+                https://github.com/RussDev7/CastleForge-CommunityMods
+              """
+              normalized = normalize_url(url).lower()
+              normalized_prefix = normalize_url(prefix).lower()
+
+              return (
+                  normalized == normalized_prefix
+                  or normalized.startswith(normalized_prefix + '/')
+                  or normalized.startswith(normalized_prefix + '?')
+                  or normalized.startswith(normalized_prefix + '#')
+              )
 
           def is_known_private_url(url: str) -> bool:
-              normalized = normalize_url(url).lower()
-              return any(normalized.startswith(prefix.lower()) for prefix in PRIVATE_URL_PREFIXES)
-
-          urls = {}
+              return any(
+                  private_prefix_matches(url, prefix)
+                  for prefix in PRIVATE_REPO_URL_PREFIXES
+              )
 
           def remember(url: str, source: str) -> None:
-              urls.setdefault(url, []).append(source)
+              cleaned = clean_url(url)
 
-          for path in [ROOT / 'README.md', ROOT / 'CONTRIBUTING.md']:
-              if path.is_file():
-                  text = path.read_text(encoding='utf-8', errors='replace')
-                  for match in URL_RE.findall(text):
-                      remember(match.rstrip('.,;'), path.as_posix())
+              if not cleaned:
+                  return
+
+              urls.setdefault(cleaned, []).append(source)
+
+          def collect_markdown_links(path: Path) -> None:
+              if not path.is_file():
+                  return
+
+              text = path.read_text(encoding='utf-8', errors='replace')
+
+              for match in URL_RE.findall(text):
+                  remember(match, path.as_posix())
+
+          def collect_mod_json_links(mod_json_path: Path) -> None:
+              try:
+                  mod_data = json.loads(mod_json_path.read_text(encoding='utf-8'))
+              except Exception as exc:
+                  add_error(f"Could not parse {mod_json_path.as_posix()}: {exc}")
+                  return
+
+              name = str(mod_data.get('name', '')).strip()
+              slug = str(mod_data.get('slug', '')).strip()
+
+              if name in PLACEHOLDER_NAMES or slug in PLACEHOLDER_SLUGS:
+                  return
+
+              for key in ('source_repo', 'releases_url'):
+                  value = str(mod_data.get(key, '')).strip()
+                  if value:
+                      remember(value, f"{mod_json_path.as_posix()}::{key}")
+
+          def current_repo_local_path(url: str):
+              """
+              If a link points to a file in this same repo, check it locally
+              instead of checking the public main branch.
+
+              This prevents pull requests from failing just because a new file
+              has not been merged into main yet.
+              """
+              repository = os.environ.get('GITHUB_REPOSITORY', '').strip()
+
+              if not repository or '/' not in repository:
+                  return None
+
+              owner, repo_name = repository.split('/', 1)
+              parsed = urllib.parse.urlparse(url)
+              netloc = parsed.netloc.lower()
+              parts = [part for part in parsed.path.split('/') if part]
+
+              # raw.githubusercontent.com/owner/repo/branch/path/to/file
+              if netloc == 'raw.githubusercontent.com':
+                  if len(parts) >= 4:
+                      raw_owner, raw_repo = parts[0], parts[1]
+
+                      if raw_owner.lower() == owner.lower() and raw_repo.lower() == repo_name.lower():
+                          return ROOT / Path(*parts[3:])
+
+              # github.com/owner/repo/blob/branch/path/to/file
+              # github.com/owner/repo/tree/branch/path/to/folder
+              if netloc == 'github.com':
+                  if len(parts) >= 5:
+                      gh_owner, gh_repo, kind = parts[0], parts[1], parts[2]
+
+                      if (
+                          gh_owner.lower() == owner.lower()
+                          and gh_repo.lower() == repo_name.lower()
+                          and kind.lower() in {'blob', 'tree'}
+                      ):
+                          return ROOT / Path(*parts[4:])
+
+              return None
+
+          for path in [
+              ROOT / 'README.md',
+              ROOT / 'CONTRIBUTING.md',
+          ]:
+              collect_markdown_links(path)
 
           for entry_root in CATEGORY_ROOTS:
               if not entry_root.is_dir():
                   continue
 
               for mod_dir in sorted(entry_root.iterdir()):
-                  if not mod_dir.is_dir() or mod_dir.name == '_template' or mod_dir.name.startswith('.'):
+                  if not mod_dir.is_dir():
+                      continue
+
+                  if mod_dir.name == '_template' or mod_dir.name.startswith('.'):
                       continue
 
                   mod_json_path = mod_dir / 'mod.json'
                   if mod_json_path.is_file():
-                      try:
-                          mod_data = json.loads(mod_json_path.read_text(encoding='utf-8'))
-                      except Exception as exc:
-                          add_error(f"Could not parse {mod_json_path.as_posix()}: {exc}")
-                          continue
-
-                      name = str(mod_data.get('name', '')).strip()
-                      slug = str(mod_data.get('slug', '')).strip()
-                      if name in PLACEHOLDER_NAMES or slug in PLACEHOLDER_SLUGS:
-                          continue
-
-                      for key in ('source_repo', 'releases_url'):
-                          value = str(mod_data.get(key, '')).strip()
-                          if value:
-                              remember(value, f"{mod_json_path.as_posix()}::{key}")
+                      collect_mod_json_links(mod_json_path)
 
                   readme_path = mod_dir / 'README.md'
-                  if readme_path.is_file():
-                      text = readme_path.read_text(encoding='utf-8', errors='replace')
-                      for match in URL_RE.findall(text):
-                          remember(match.rstrip('.,;'), readme_path.as_posix())
+                  collect_markdown_links(readme_path)
 
           opener = urllib.request.build_opener()
-          opener.addheaders = [('User-Agent', 'CastleForge-CommunityMods-LinkValidator/1.3')]
+          opener.addheaders = [
+              ('User-Agent', 'CastleForge-CommunityMods-LinkValidator/1.4'),
+          ]
+
+          def request_status(url: str, method: str):
+              req = urllib.request.Request(url, method=method)
+
+              # Ask for only a tiny amount when falling back to GET.
+              if method == 'GET':
+                  req.add_header('Range', 'bytes=0-0')
+
+              try:
+                  with opener.open(req, timeout=20) as resp:
+                      return getattr(resp, 'status', None) or resp.getcode()
+              except urllib.error.HTTPError as exc:
+                  return exc.code
 
           def check_url(url: str):
               parsed = urllib.parse.urlparse(url)
+
               if parsed.scheme not in {'http', 'https'} or not parsed.netloc:
                   return 'error', f"Malformed URL: {url}"
+
+              local_path = current_repo_local_path(url)
+              if local_path is not None:
+                  if local_path.exists():
+                      return 'ok', None
+
+                  return 'error', f"Local repo link points to missing path: {url} -> {local_path.as_posix()}"
 
               if is_known_private_url(url):
                   return 'warning', f"Skipping private repo URL check: {url}"
 
-              req = urllib.request.Request(url, method='HEAD')
               try:
-                  with opener.open(req, timeout=20) as resp:
-                      code = getattr(resp, 'status', None) or resp.getcode()
-              except urllib.error.HTTPError as exc:
-                  code = exc.code
+                  code = request_status(url, 'HEAD')
+
+                  # Some hosts block HEAD even though GET works.
+                  if code in {403, 405}:
+                      get_code = request_status(url, 'GET')
+
+                      if 200 <= get_code < 400:
+                          code = get_code
+
               except Exception as exc:
                   return 'warning', f"Could not verify {url}: {exc}"
 
               if 200 <= code < 400:
                   return 'ok', None
+
               if code in {401, 403, 405}:
                   return 'warning', f"Received HTTP {code} for {url}; treating as reachable but restricted."
+
               if code in {404, 410}:
                   return 'error', f"Received HTTP {code} for {url}"
+
               return 'warning', f"Received HTTP {code} for {url}; review manually."
 
           for url, sources in sorted(urls.items()):
               status, message = check_url(url)
-              source_list = ', '.join(sorted(sources))
+              source_list = ', '.join(sorted(set(sources)))
+
               if status == 'error':
                   add_error(f"{message} (referenced from {source_list})")
               elif status == 'warning':
