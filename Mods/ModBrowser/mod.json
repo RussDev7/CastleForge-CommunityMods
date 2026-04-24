@@ -1,0 +1,19 @@
+{
+  "name": "ModBrowser",
+  "slug": "modbrowser",
+  "category": "mod",
+  "author": "unknowghost",
+  "maintainers": ["unknowghost"],
+  "summary": "A comprehensive mod management browser for CastleForge. Browse, install, and manage community mods directly from the game.",
+  "game_version": "1.9.9.8",
+  "castleforge_version": "core-v0.2.0+",
+  "license": "GPL-3.0+",
+  "source_repo": "https://github.com/unknowghost0/mod-browser",
+  "releases_url": "https://github.com/unknowghost0/mod-browser/releases",
+  "readme_path": "Mods/ModBrowser/README.md",
+  "preview_path": "Mods/ModBrowser/preview.png",
+  "tags": ["utility", "modmanagement", "community"],
+  "dependencies": [],
+  "conflicts": [],
+  "official": false
+}
