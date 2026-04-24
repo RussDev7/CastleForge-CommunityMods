@@ -1,5 +1,7 @@
 # Mod Browser
 
+![Preview](preview.png)
+
 GitHub-backed in-game browser and creator flow for CastleForge community content.
 
 ## What it does

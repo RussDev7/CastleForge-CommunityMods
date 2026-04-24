@@ -1,5 +1,7 @@
 # Configuration Manager
 
+![Preview](preview.png)
+
 Universal configuration manager for CastleForge mods. Provides an intuitive interface for managing and organizing mod settings.
 
 ## What it does
