@@ -96,17 +96,6 @@ The in-game creator now fills the modern community template fields, including:
 - tags
 - preview file name
 
-## How to publish now
-1. Open `Create Mod` in Mod Browser.
-2. Fill in your mod info and press `CREATE FILES`.
-3. Open the generated folder in:
-   `!Mods\ModBrowser\Publisher\CommunityEntries\...`
-4. Replace the placeholder preview with your real `preview.png` or `preview.gif`.
-5. Fork `RussDev7/CastleForge-CommunityMods`.
-6. Copy the generated entry folder into the matching category in your fork.
-7. Commit your changes.
-8. Open a pull request.
-
 ## Notes
 - The browser side still reads the repo's generated catalog JSON.
 - The creator side now targets the repo's folder-per-entry PR workflow.

@@ -36,27 +36,6 @@ Each entry folder should include:
 - `README.md`
 - `preview.png` or `preview.gif`
 
-## How to publish
-
-1. Prepare your configuration mod files:
-   - Ensure `mod.json` contains valid metadata (name, version, author, description)
-   - Create a meaningful `README.md` explaining what your config manages
-   - Provide a `preview.png` or `preview.gif` showing the interface or use case
-
-2. Fork `RussDev7/CastleForge-CommunityMods`
-
-3. Copy your submission into the matching category folder:
-   - `Mods/<YourConfigName>/`
-
-4. Include:
-   - `mod.json`
-   - `README.md`
-   - `preview.png` or `preview.gif`
-
-5. Commit your changes
-
-6. Open a pull request
-
 ## Notes
 - Config mod works alongside other CastleForge mods to provide centralized settings management
 - The community catalog system will automatically discover and index your mod once the PR is merged
