@@ -1,12 +1,19 @@
 {
   "name": "ModConfig",
-  "displayName": "Configuration Manager",
+  "slug": "modconfig",
+  "category": "mod",
   "author": "unknowghost",
-  "version": "2.0.1",
-  "description": "A universal configuration manager for CastleForge mods. Provides an intuitive interface for configuring mod settings.",
+  "maintainers": ["unknowghost"],
+  "summary": "Universal configuration manager for CastleForge mods. Provides an intuitive interface for managing and organizing mod settings.",
+  "game_version": "1.9.9.8",
+  "castleforge_version": "core-v0.2.0+",
+  "license": "GPL-3.0+",
+  "source_repo": "https://github.com/unknowghost0/config_castleminerZ",
+  "releases_url": "https://github.com/unknowghost0/config_castleminerZ/releases",
+  "readme_path": "Mods/ModConfig/README.md",
+  "preview_path": "Mods/ModConfig/preview.png",
   "tags": ["utility", "configuration", "settings"],
-  "dll_url": "https://github.com/unknowghost0/config_castleminerZ/releases/download/v2.0.1/Config.dll",
-  "page_url": "https://github.com/unknowghost0/config_castleminerZ",
-  "preview_url": "preview.png",
-  "dependencies": []
+  "dependencies": [],
+  "conflicts": [],
+  "official": false
 }
