@@ -1,15 +1,29 @@
 {
-  "title": "CastleForge Catalog",
-  "mods": [
-    {
-      "id": "ChaosMod",
-      "name": "Chaos Mode",
-      "author": "unknowghost",
-      "version": "3.2.0",
-      "description": "Random chaos effects trigger every 30 seconds work for solo/multi player. Features teleports, enemy spawns, item drops, weather changes, and more. Effects sync to all players.",
-      "dll_url": "https://github.com/unknowghost0/Chaos-Mode/releases/download/Chaos/ChaosMod.dll",
-      "page_url": "https://github.com/unknowghost0/Chaos-Mode",
-      "preview_url": "preview.png"
-    }
-  ]
+  "name": "Chaos Mode",
+  "slug": "chaos-mode",
+  "category": "mod",
+  "author": "unknowghost",
+  "maintainers": [
+    "unknowghost"
+  ],
+  "summary": "Random chaos effects trigger every 30 seconds for solo and multiplayer, including teleports, enemy spawns, item drops, world changes, visual effects, and more.",
+  "game_version": "1.9.9.8",
+  "castleforge_version": "0.1.0",
+  "license": "GPL-3.0-or-later",
+  "source_repo": "https://github.com/unknowghost0/Chaos-Mode",
+  "releases_url": "https://github.com/unknowghost0/Chaos-Mode/releases",
+  "readme_path": "Mods/Chaos Mode/README.md",
+  "preview_path": "Mods/Chaos Mode/preview.png",
+  "tags": [
+    "chaos",
+    "multiplayer",
+    "effects",
+    "gameplay",
+    "community"
+  ],
+  "dependencies": [
+    "ModLoaderExtensions"
+  ],
+  "conflicts": [],
+  "official": false
 }
