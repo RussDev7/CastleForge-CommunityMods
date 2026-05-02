@@ -1,0 +1,19 @@
+{
+  "name": "Chaos Mode",
+  "slug": "chaos-mode",
+  "category": "mod",
+  "author": "unknowghost",
+  "maintainers": ["unknowghost"],
+  "summary": "Random chaos effects trigger every 30 seconds in solo and multiplayer, including teleports, item drops, world changes, visual effects, temporary player effects, and controlled enemy events.",
+  "game_version": "v1.9.9.8",
+  "castleforge_version": "core-v0.1.0+",
+  "license": "GPL-3.0-or-later",
+  "source_repo": "https://github.com/unknowghost0/Chaos-Mode",
+  "releases_url": "https://github.com/unknowghost0/Chaos-Mode/releases",
+  "readme_path": "Mods/Chaos Mode/README.md",
+  "preview_path": "Mods/Chaos Mode/preview.png",
+  "tags": ["chaos", "gameplay", "multiplayer"],
+  "dependencies": ["ModLoaderExtensions"],
+  "conflicts": [],
+  "official": false
+}
