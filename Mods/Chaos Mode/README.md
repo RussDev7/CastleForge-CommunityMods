@@ -1,6 +1,6 @@
 # Chaos Mode for CastleMiner Z
 
-Random chaos effects trigger every 30 seconds in solo and multiplayer. Features teleports, enemy spawns, item drops, weather changes, and more. Effects sync to all players in multiplayer.
+Random chaos effects trigger every 30 seconds in solo and multiplayer. Features teleports, item drops, weather changes, visual effects, temporary player effects, controlled enemy events, and more. Effects sync to all players in multiplayer.
 
 ## Preview
 
@@ -72,8 +72,8 @@ Random chaos effects trigger every 30 seconds in solo and multiplayer. Features 
 - **Teleport Player To Dragon** - Teleports player to the nearest dragon
 
 ### Enemy Effects
-- **Spawn Random Enemy** - Spawns a random enemy type
-- **Spawn Random Dragon** - Spawns a random dragon type
+- **Spawn Random Enemy** - Starts a controlled random enemy event
+- **Spawn Random Dragon** - Starts a controlled random dragon event
 - **Kill All Enemies** - Kills all enemies in the world
 - **Obliterate Enemies** - Destroys all enemies
 - **Launch All Enemies Up** - Launches all enemies into the air
