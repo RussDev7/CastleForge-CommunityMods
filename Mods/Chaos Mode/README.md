@@ -2,6 +2,10 @@
 
 Random chaos effects trigger every 30 seconds in solo and multiplayer. Features teleports, enemy spawns, item drops, weather changes, and more. Effects sync to all players in multiplayer.
 
+## Preview
+
+![Chaos Mode preview](preview.png)
+
 ## Features
 
 - **60+ unique chaos effects** that trigger randomly
