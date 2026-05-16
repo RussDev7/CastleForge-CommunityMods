@@ -191,28 +191,38 @@ jobs:
                   if entry['preview_path'] else
                   '<div class="missing-preview">No preview provided</div>'
               )
+
+              search_text = ' '.join([
+                  entry['name'],
+                  entry['summary'],
+                  entry['author'],
+                  entry['category'],
+                  entry['category_label'],
+                  ' '.join(entry['tags']),
+              ]).lower()
+
               cards.append(f"""
-              <article class="card" data-category="{html.escape(entry['category'])}">
-                <div class="media">
-                  {preview_html}
-                </div>
-                <div class="content">
-                  <div class="heading">
-                    <h2>{html.escape(entry['name'])}</h2>
-                    <span class="badge type">{html.escape(entry['category_label'])}</span>
-                    <span class="badge {'official' if entry['official'] else 'community'}">{'Official' if entry['official'] else 'Community'}</span>
-                  </div>
-                  <p class="author">By {html.escape(entry['author'])}</p>
-                  <p>{html.escape(entry['summary'])}</p>
-                  <div class="tags">{tags_html}</div>
-                  <div class="links">
-                    <a href="{html.escape(blob_readme_url)}">README</a>
-                    {f'<a href="{html.escape(entry["source_repo"])}">Source</a>' if entry['source_repo'] else ''}
-                    {f'<a href="{html.escape(entry["releases_url"])}">Releases</a>' if entry['releases_url'] else ''}
-                  </div>
-                </div>
-              </article>
-              """)
+          <article class="card" data-category="{html.escape(entry['category'])}" data-search="{html.escape(search_text, quote=True)}">
+            <div class="media">
+              {preview_html}
+            </div>
+            <div class="content">
+              <div class="heading">
+                <h2>{html.escape(entry['name'])}</h2>
+                <span class="badge type">{html.escape(entry['category_label'])}</span>
+                <span class="badge {'official' if entry['official'] else 'community'}">{'Official' if entry['official'] else 'Community'}</span>
+              </div>
+              <p class="author">By {html.escape(entry['author'])}</p>
+              <p>{html.escape(entry['summary'])}</p>
+              <div class="tags">{tags_html}</div>
+              <div class="links">
+                <a href="{html.escape(blob_readme_url)}">README</a>
+                {f'<a href="{html.escape(entry["source_repo"])}">Source</a>' if entry['source_repo'] else ''}
+                {f'<a href="{html.escape(entry["releases_url"])}">Releases</a>' if entry['releases_url'] else ''}
+              </div>
+            </div>
+          </article>
+          """)
 
           total = sum(counts.values())
           filter_buttons = [f'<button class="filter active" data-filter="all">All <span>{total}</span></button>']
@@ -245,6 +255,13 @@ jobs:
               .filter {{ border:1px solid var(--line); background:var(--panel); color:var(--text); border-radius:999px; padding:10px 14px; cursor:pointer; font:inherit; }}
               .filter span {{ color:var(--muted); margin-left:6px; }}
               .filter.active {{ outline:2px solid rgba(110,168,254,.35); }}
+              .catalog-tools {{ display:flex; gap:14px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; margin:0 0 24px; }}
+              .search-wrap {{ flex:1 1 320px; display:grid; gap:8px; }}
+              .search-label {{ color:var(--muted); font-size:.95rem; }}
+              .search-input {{ width:100%; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 14px; font:inherit; outline:none; }}
+              .search-input:focus {{ border-color:var(--accent); box-shadow:0 0 0 3px rgba(110,168,254,.18); }}
+              .result-count {{ color:var(--muted); margin:0; padding:12px 0; }}
+              .hidden {{ display:none !important; }}
               .grid {{ display:grid; gap:18px; }}
               .card {{ display:grid; grid-template-columns:minmax(240px,320px) 1fr; gap:18px; align-items:stretch; background:rgba(20,27,45,.88); border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.2); }}
               .card.hidden {{ display:none; }}
@@ -280,7 +297,17 @@ jobs:
               </header>
 
               <div class="filters" id="filters">{filter_html}</div>
+
+              <div class="catalog-tools">
+                <label class="search-wrap" for="catalog-search">
+                  <span class="search-label">Search catalog</span>
+                  <input class="search-input" id="catalog-search" type="search" placeholder="Search by name, author, tag, category, or summary..." autocomplete="off">
+                </label>
+                <p class="result-count" id="result-count">{total} item{'' if total == 1 else 's'} shown</p>
+              </div>
+
               <section class="grid" id="catalog">{body}</section>
+              <p class="empty hidden" id="no-results">No matching community entries found.</p>
 
               <footer>
                 Generated directly from entry manifests in the CastleForge-CommunityMods repository.
@@ -290,16 +317,50 @@ jobs:
             <script>
               const buttons = Array.from(document.querySelectorAll('.filter'));
               const cards = Array.from(document.querySelectorAll('.card'));
+              const searchInput = document.getElementById('catalog-search');
+              const resultCount = document.getElementById('result-count');
+              const noResults = document.getElementById('no-results');
+
+              let activeFilter = 'all';
+
+              function applyCatalogFilters() {{
+                const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                let visibleCount = 0;
+
+                cards.forEach(card => {{
+                  const matchesCategory = activeFilter === 'all' || card.dataset.category === activeFilter;
+                  const matchesSearch = !query || (card.dataset.search || '').includes(query);
+                  const show = matchesCategory && matchesSearch;
+
+                  card.classList.toggle('hidden', !show);
+
+                  if (show) {{
+                    visibleCount++;
+                  }}
+                }});
+
+                if (resultCount) {{
+                  resultCount.textContent = `${{visibleCount}} item${{visibleCount === 1 ? '' : 's'}} shown`;
+                }}
+
+                if (noResults) {{
+                  noResults.classList.toggle('hidden', visibleCount !== 0);
+                }}
+              }}
+
               buttons.forEach(button => {{
                 button.addEventListener('click', () => {{
-                  const value = button.dataset.filter;
+                  activeFilter = button.dataset.filter;
                   buttons.forEach(b => b.classList.toggle('active', b === button));
-                  cards.forEach(card => {{
-                    const show = value === 'all' || card.dataset.category === value;
-                    card.classList.toggle('hidden', !show);
-                  }});
+                  applyCatalogFilters();
                 }});
               }});
+
+              if (searchInput) {{
+                searchInput.addEventListener('input', applyCatalogFilters);
+              }}
+
+              applyCatalogFilters();
             </script>
           </body>
           </html>
