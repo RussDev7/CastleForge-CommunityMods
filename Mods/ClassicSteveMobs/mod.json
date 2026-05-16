@@ -1,0 +1,29 @@
+{
+  "name": "ClassicSteveMobs",
+  "slug": "classic-steve-mobs",
+  "category": "mod",
+  "author": "RussDev7",
+  "maintainers": [
+    "RussDev7"
+  ],
+  "summary": "Adds a classic blocky Steve-style test mob to CastleMiner Z with command spawning, random wandering, hopping behavior, optional natural spawns, and hot-reloadable configuration.",
+  "game_version": "1.9.9.8",
+  "castleforge_version": "0.1.0",
+  "license": "GPL-3.0-or-later",
+  "source_repo": "https://github.com/RussDev7/CastleForge",
+  "releases_url": "https://github.com/RussDev7/CastleForge/releases",
+  "readme_path": "Mods/ClassicSteveMobs/README.md",
+  "preview_path": "Mods/ClassicSteveMobs/Preview.gif",
+  "tags": [
+    "mobs",
+    "enemy",
+    "experimental",
+    "gameplay",
+    "commands"
+  ],
+  "dependencies": [
+    "ModLoaderExtensions"
+  ],
+  "conflicts": [],
+  "official": false
+}
