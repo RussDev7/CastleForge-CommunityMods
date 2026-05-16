@@ -5,7 +5,7 @@
 
 **Current mod version shown in source:** `0.0.1.0`
 
-![Preview](Preview.png)
+![Preview](Preview.gif)
 
 ---
 
