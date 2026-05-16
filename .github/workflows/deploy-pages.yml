@@ -340,7 +340,8 @@ jobs:
                 }});
 
                 if (resultCount) {{
-                  resultCount.textContent = `${{visibleCount}} item${{visibleCount === 1 ? '' : 's'}} shown`;
+                  resultCount.textContent =
+                    visibleCount + ' item' + (visibleCount === 1 ? '' : 's') + ' shown';
                 }}
 
                 if (noResults) {{
