@@ -1,0 +1,27 @@
+{
+  "name": "PumpkinGrenades",
+  "slug": "pumpkin-grenades",
+  "category": "mod",
+  "author": "RussDev7",
+  "maintainers": [
+    "RussDev7"
+  ],
+  "summary": "Restores the early CastleMiner Z 1.8.0 pumpkin-themed grenade model for regular grenades, sticky grenades, and thrown grenade projectiles using a small CastleForge ModLoader Harmony patch.",
+  "game_version": "1.9.9.8",
+  "castleforge_version": "0.1.0+",
+  "license": "GPL-3.0-or-later",
+  "source_repo": "https://github.com/RussDev7/CastleForge-PumpkinGrenades",
+  "releases_url": "https://github.com/RussDev7/CastleForge-PumpkinGrenades/releases",
+  "readme_path": "Mods/PumpkinGrenades/README.md",
+  "preview_path": "Mods/PumpkinGrenades/preview.png",
+  "tags": [
+    "grenades",
+    "visual",
+    "restoration",
+    "halloween",
+    "cosmetic"
+  ],
+  "dependencies": [],
+  "conflicts": [],
+  "official": false
+}
