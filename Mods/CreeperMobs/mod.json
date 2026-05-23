@@ -1,0 +1,32 @@
+{
+  "name": "CreeperMobs",
+  "slug": "creeper-mobs",
+  "category": "mod",
+  "author": "RussDev7",
+  "maintainers": [
+    "RussDev7"
+  ],
+  "summary": "Adds configurable creeper-style mobs to CastleMiner Z with custom blocky rendering, chase and fuse behavior, explosions, command spawning, hot-reloadable config, and optional night-only natural spawns.",
+  "game_version": "1.9.9.8",
+  "castleforge_version": "0.1.0",
+  "license": "GPL-3.0-or-later",
+  "source_repo": "https://github.com/RussDev7/CastleForge-CreeperMobs",
+  "releases_url": "https://github.com/RussDev7/CastleForge-CreeperMobs/releases",
+  "readme_path": "Mods/CreeperMobs/README.md",
+  "preview_path": "Mods/CreeperMobs/preview.gif",
+  "tags": [
+    "mobs",
+    "enemy",
+    "creeper",
+    "explosive",
+    "gameplay",
+    "commands",
+    "configuration",
+    "night-spawns"
+  ],
+  "dependencies": [
+    "ModLoaderExtensions"
+  ],
+  "conflicts": [],
+  "official": false
+}
