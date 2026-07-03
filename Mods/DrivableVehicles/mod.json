@@ -11,7 +11,7 @@
   "castleforge_version": "0.1.0+",
   "license": "GPL-3.0-or-later",
   "source_repo": "https://github.com/RussDev7/CastleForge-DrivableVehicles",
-  "releases_url": "https://github.com/RussDev7/CastleForge-DrivableVehicles/releases"
+  "releases_url": "https://github.com/RussDev7/CastleForge-DrivableVehicles/releases",
   "readme_path": "Mods/DrivableVehicles/README.md",
   "preview_path": "Mods/DrivableVehicles/preview.png",
   "tags": [
