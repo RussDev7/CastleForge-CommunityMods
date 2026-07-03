@@ -1,0 +1,32 @@
+{
+  "name": "DrivableVehicles",
+  "slug": "drivable-vehicles",
+  "category": "mod",
+  "author": "RussDev7",
+  "maintainers": [
+    "RussDev7"
+  ],
+  "summary": "Adds a local-only drivable vehicle system to CastleMiner Z with selectable XNB vehicle models, configurable driving keys, optional sounds, clean vehicle HUD behavior, and per-vehicle tuning files.",
+  "game_version": "1.9.9.8",
+  "castleforge_version": "0.1.0+",
+  "license": "GPL-3.0-or-later",
+  "source_repo": "https://github.com/RussDev7/CastleForge-DrivableVehicles",
+  "releases_url": "https://github.com/RussDev7/CastleForge-DrivableVehicles/releases"
+  "readme_path": "Mods/DrivableVehicles/README.md",
+  "preview_path": "Mods/DrivableVehicles/preview.png",
+  "tags": [
+    "vehicles",
+    "driving",
+    "gameplay",
+    "models",
+    "configuration",
+    "sounds",
+    "experimental",
+    "commands"
+  ],
+  "dependencies": [
+    "ModLoaderExtensions"
+  ],
+  "conflicts": [],
+  "official": false
+}
