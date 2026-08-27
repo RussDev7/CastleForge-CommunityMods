@@ -244,6 +244,36 @@
     ]
   },
   {
+    "name": "XboxAvatar",
+    "slug": "xbox-avatar",
+    "category": "mod",
+    "author": "KikoTs",
+    "summary": "Replaces the stock character with your own Xbox Original Avatar, in third person for everyone running the mod and as your own hands and glove in first person, posed by the game's own held-item animation. Held items sit in the avatar's real finger grip at any height or build. Capture and reload without leaving the game with /avatar import and /avatar reload, and avatars are shared in multiplayer over a capability-gated channel that vanilla clients never see.",
+    "readme_path": "Mods/XboxAvatar/README.md",
+    "preview_path": "Mods/XboxAvatar/preview.png",
+    "official": false,
+    "source_repo": "https://github.com/KikoTs/castleforge-xbox-avatar",
+    "releases_url": "https://github.com/KikoTs/castleforge-xbox-avatar/releases",
+    "game_version": "1.9.9.8",
+    "castleforge_version": "core-v0.1.0+",
+    "license": "GPL-3.0-or-later",
+    "tags": [
+      "avatar",
+      "character",
+      "cosmetic",
+      "first-person",
+      "multiplayer",
+      "commands",
+      "xbox"
+    ],
+    "maintainers": [
+      "KikoTs"
+    ],
+    "dependencies": [
+      "ModLoaderExtensions"
+    ]
+  },
+  {
     "name": "Minecraft Texture Pack",
     "slug": "minecraft-texture-pack",
     "category": "texture-pack",
